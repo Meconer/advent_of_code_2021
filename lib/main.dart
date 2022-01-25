@@ -1,0 +1,141 @@
+import 'package:flutter/material.dart';
+
+import 'day1.dart';
+import 'day10.dart';
+import 'day11.dart';
+import 'day12.dart';
+import 'day2.dart';
+import 'day3.dart';
+import 'day4.dart';
+import 'day5.dart';
+import 'day6.dart';
+import 'day7.dart';
+import 'day8.dart';
+import 'day9.dart';
+
+void main() {
+  runApp(const MyApp());
+}
+
+class MyApp extends StatelessWidget {
+  const MyApp({Key? key}) : super(key: key);
+
+  // This widget is the root of your application.
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      title: 'Flutter Demo',
+      theme: ThemeData(
+        primarySwatch: Colors.blue,
+      ),
+      routes: {
+        '/': (context) => const MyHomePage(title: 'Advent of code 2021'),
+        Day1.routeName: (context) => const Day1(),
+        Day2.routeName: (context) => const Day2(),
+        Day3.routeName: (context) => const Day3(),
+        Day4.routeName: (context) => const Day4(),
+        Day5.routeName: (context) => const Day5(),
+        Day6.routeName: (context) => const Day6(),
+        Day7.routeName: (context) => const Day7(),
+        Day8.routeName: (context) => const Day8(),
+        Day9.routeName: (context) => const Day9(),
+        Day10.routeName: (context) => Day10(),
+        Day11.routeName: (context) => const Day11(),
+        Day12.routeName: (context) => const Day12(),
+      },
+    );
+  }
+}
+
+class MyHomePage extends StatelessWidget {
+  const MyHomePage({Key? key, required this.title}) : super(key: key);
+
+  final String title;
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(title),
+      ),
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: <Widget>[
+            DayButton(
+              titleText: 'Day 1 - Sonar Sweep',
+              routeName:  Day1.routeName,
+            ),
+            DayButton(
+              titleText: 'Day 2 - Dive!',
+              routeName:  Day2.routeName,
+            ),
+            DayButton(
+              titleText: 'Day 3 Binary Diagnostic',
+              routeName: Day3.routeName,
+            ),
+            DayButton(
+              titleText: 'Day 4 Giant Squid',
+              routeName: Day4.routeName,
+            ),
+            DayButton(
+              titleText: Day5.dayTitle,
+              routeName: Day5.routeName,
+            ),
+            DayButton(
+              titleText: Day6.dayTitle,
+              routeName: Day6.routeName,
+            ),
+            DayButton(
+              titleText: Day7.dayTitle,
+              routeName: Day7.routeName,
+            ),
+            DayButton(
+              titleText: Day8.dayTitle,
+              routeName: Day8.routeName,
+            ),
+            DayButton(
+              titleText: Day9.dayTitle,
+              routeName: Day9.routeName,
+            ),
+            DayButton(
+              titleText: Day10.dayTitle,
+              routeName: Day10.routeName,
+            ),
+            DayButton(
+              titleText: Day11.dayTitle,
+              routeName: Day11.routeName,
+            ),
+            DayButton(
+              titleText: Day12.dayTitle,
+              routeName: Day12.routeName,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class DayButton extends StatelessWidget {
+  const DayButton({
+    Key? key,
+    required this.titleText,
+    required this.routeName,
+  }) : super(key: key);
+
+  final String titleText;
+  final String routeName;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.all(4.0),
+      child: MaterialButton(
+        child: Text(titleText),
+        color: Colors.lightBlueAccent,
+        onPressed: () => Navigator.pushNamed(context, routeName),
+      ),
+    );
+  }
+}
