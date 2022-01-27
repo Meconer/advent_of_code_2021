@@ -32,6 +32,23 @@ class Day13 extends StatelessWidget {
 
 
   int doPart1() {
+    final lines = getInput(isExample);
+    List<String> foldInstructions = [];
+    List<Point> pointList = [];
+    for ( final line in lines ) {
+      if (line.contains('fold')) {
+        foldInstructions.add(line);
+      } else {
+        if (line.isNotEmpty) {
+          final points = line.split(',');
+          int col = int.parse(points[0]);
+          int row = int.parse(points[1]);
+          pointList.add(Point(col, row));
+        }
+      }
+    }
+
+
     return 0;
   }
 
@@ -48,6 +65,12 @@ class Day13 extends StatelessWidget {
     }
     return lines;
   }
+}
+
+class Point {
+  int col,row;
+
+  Point(this.col, this.row);
 }
 
 String exampleInputText =
