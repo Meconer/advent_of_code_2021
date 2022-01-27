@@ -29,16 +29,18 @@ class Day12 extends StatelessWidget {
     );
   }
 
+
+
   int doPart1() {
-    final caves = getInput(isExample);
-    caves.printConnections();
-    caves.findPaths();
-    return 0;
+    final caveSystem = getInput(isExample);
+    caveSystem.findPaths();
+    return caveSystem.solutions.length;
   }
 
   int doPart2() {
-    final inputs = getInput(isExample);
-    return 0;
+    final caveSystem = getInput(isExample);
+    caveSystem.findPathsPart2();
+    return caveSystem.solutions.length;
   }
 
   CaveSystem getInput(bool example) {
@@ -56,6 +58,41 @@ class Day12 extends StatelessWidget {
     }
     return caveSystem;
   }
+}
+
+class VisitCounter {
+  late final Map<Cave,int> visitCount;
+
+  VisitCounter() {
+    visitCount = {};
+  }
+
+  VisitCounter.from(VisitCounter visitCounter) {
+    visitCount = {};
+    for (final key in visitCounter.visitCount.keys) {
+      visitCount[key] = visitCounter.visitCount[key]!;
+    }
+  }
+
+  bool isLegalVisit(Cave cave) {
+    if (cave.isLarge()) return true;
+    int maxValue = 0;
+    for ( int value in visitCount.values ) {
+      if ( value > maxValue) maxValue = value;
+    }
+    if (visitCount.containsKey(cave )) {
+
+      if (['start','end'].contains(cave.name)) return false;
+      if (maxValue < 2) {
+        visitCount[cave] = visitCount[cave]! + 1;
+        return true;
+      }
+      return false;
+    } else {
+      visitCount[cave] = 1;
+    }
+    return true;
+  }
 
 }
 
@@ -69,10 +106,16 @@ class Cave {
     if (name.toLowerCase() == name) return true;
     return false;
   }
+
+  bool isLarge() {
+    return !isSmall();
+  }
 }
+
 
 class CaveSystem {
   Set<Cave> caveSet = {};
+  List<String> solutions = [];
 
   void addCaves(String caveName, String connectedToCaveName) {
     final cave = getCaveIfExists(caveName) ?? Cave(caveName);
@@ -100,29 +143,73 @@ class CaveSystem {
   }
 
   void findPaths() {
-    List<List<Cave>> path = [];
-    final startCave = locateCavebyName('start')!;
-    for ( final cave in startCave.connections ) {
-      Set<Cave> visitedCaves = {startCave};
-      path.addAll(findAllPaths(cave, visitedCaves);
-    }
+    String pathStr = '';
+    final startCave = locateCaveByName('start')!;
+    Set<Cave> visitedSmallCaves = {startCave};
+
+    findAllPaths(startCave, Set.from(visitedSmallCaves), '', pathStr);
   }
 
-  List<List<Cave>> findAllPaths(Cave cave, Set<Cave> visitedCaves) {
+  void findPathsPart2() {
+    String pathStr = '';
+    final startCave = locateCaveByName('start')!;
+    VisitCounter visitCounter = VisitCounter();
+    findAllPathsPart2(startCave, visitCounter, '', pathStr);
+  }
+
+  void printVisited(Set<Cave> visited) {
+    String s = '';
+    for (final cave in visited) {
+      s += cave.name + ', ';
+    }
+    debugPrint('Visited : $s');
+  }
+
+  void findAllPaths(Cave cave, Set<Cave> visitedSmallCaves, String indent, String pathStr) {
+    if (cave.name == 'end') {
+      // Path ends here. Return it
+      pathStr += ', ' + cave.name;
+      solutions.add(pathStr);
+    }
+    pathStr += ', ' + cave.name;
     for (Cave nextCave in cave.connections) {
-      if (nextCave.isSmall() && visitedCaves.contains(nextCave)) {
-        return List<List<Cave>>[];
+      //debugPrint(' $indent - ${nextCave.name}');
+      if (nextCave.isSmall()) {
+        if ( !visitedSmallCaves.contains(nextCave)) {
+          final newVisitedSet = Set<Cave>.from(visitedSmallCaves);
+          newVisitedSet.add(nextCave);
+          findAllPaths(nextCave, newVisitedSet, indent + '  ', pathStr);
+        }
+      } else {
+        findAllPaths(nextCave, Set.from(visitedSmallCaves), indent + '  ', pathStr);
       }
     }
   }
 
-  Cave? locateCavebyName(String nameToFind) {
+  void findAllPathsPart2(Cave cave, VisitCounter visitCounter, String indent, String pathStr) {
+    if (cave.name == 'end') {
+      // Path ends here. Return it
+      pathStr += ', ' + cave.name;
+      solutions.add(pathStr);
+      return;
+    }
+    if (cave.isSmall()) {
+      if (!visitCounter.isLegalVisit(cave)) return;
+    }
+    pathStr += ', ' + cave.name;
+    for (Cave nextCave in cave.connections) {
+      //debugPrint(' $indent - ${nextCave.name}');
+      final newVisitCounter = VisitCounter.from(visitCounter);
+      findAllPathsPart2(nextCave, newVisitCounter, indent + '  ', pathStr);
+    }
+  }
+
+  Cave? locateCaveByName(String nameToFind) {
     for (final node in caveSet ) {
       if (node.name == nameToFind) return node;
     }
     return null;
   }
-
 }
 
 String exampleInputText =
@@ -158,5 +245,4 @@ LY-ez
 TX-mt
 vn-sb
 uw-vn
-uw-TZ
-''';
+uw-TZ''';
