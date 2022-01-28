@@ -1,5 +1,3 @@
-import 'dart:html';
-
 import 'package:flutter/material.dart';
 
 
@@ -77,12 +75,10 @@ class Day14 extends StatelessWidget {
 
   String doStep(String polymer, Map<String,String> rules ) {
     String newPolymer = '';
-    int counter = 0 ;
 
     for ( int i = 0 ; i < polymer.length - 1; i++ ) {
       String pair = polymer.substring(i, i+2);
       String replacement = doRule(pair, rules);
-      if (replacement != pair) counter++;
       newPolymer += replacement;
     }
     newPolymer += polymer.substring(polymer.length-1);
