@@ -19,7 +19,7 @@ class DotGrid extends StatelessWidget {
             int row = index ~/ dGrid.width;
             int col = index % dGrid.width;
 
-            final color = dGrid.grid[row][col] ? Colors.black : Colors.lightBlueAccent;
+            final color = dGrid.grid[row][col] ? Colors.black45 : Colors.lightBlueAccent;
             return Container(
               height: 10,
               width: 10,
