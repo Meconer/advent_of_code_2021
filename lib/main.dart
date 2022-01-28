@@ -60,63 +60,65 @@ class MyHomePage extends StatelessWidget {
       appBar: AppBar(
         title: Text(title),
       ),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            DayButton(
-              titleText: 'Day 1 - Sonar Sweep',
-              routeName:  Day1.routeName,
-            ),
-            DayButton(
-              titleText: 'Day 2 - Dive!',
-              routeName:  Day2.routeName,
-            ),
-            DayButton(
-              titleText: 'Day 3 Binary Diagnostic',
-              routeName: Day3.routeName,
-            ),
-            DayButton(
-              titleText: 'Day 4 Giant Squid',
-              routeName: Day4.routeName,
-            ),
-            DayButton(
-              titleText: Day5.dayTitle,
-              routeName: Day5.routeName,
-            ),
-            DayButton(
-              titleText: Day6.dayTitle,
-              routeName: Day6.routeName,
-            ),
-            DayButton(
-              titleText: Day7.dayTitle,
-              routeName: Day7.routeName,
-            ),
-            DayButton(
-              titleText: Day8.dayTitle,
-              routeName: Day8.routeName,
-            ),
-            DayButton(
-              titleText: Day9.dayTitle,
-              routeName: Day9.routeName,
-            ),
-            DayButton(
-              titleText: Day10.dayTitle,
-              routeName: Day10.routeName,
-            ),
-            DayButton(
-              titleText: Day11.dayTitle,
-              routeName: Day11.routeName,
-            ),
-            DayButton(
-              titleText: Day12.dayTitle,
-              routeName: Day12.routeName,
-            ),
-            DayButton(
-              titleText: Day13.dayTitle,
-              routeName: Day13.routeName,
-            ),
-          ],
+      body: SingleChildScrollView(
+        child: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: <Widget>[
+              DayButton(
+                titleText: 'Day 1 - Sonar Sweep',
+                routeName:  Day1.routeName,
+              ),
+              DayButton(
+                titleText: 'Day 2 - Dive!',
+                routeName:  Day2.routeName,
+              ),
+              DayButton(
+                titleText: 'Day 3 Binary Diagnostic',
+                routeName: Day3.routeName,
+              ),
+              DayButton(
+                titleText: 'Day 4 Giant Squid',
+                routeName: Day4.routeName,
+              ),
+              DayButton(
+                titleText: Day5.dayTitle,
+                routeName: Day5.routeName,
+              ),
+              DayButton(
+                titleText: Day6.dayTitle,
+                routeName: Day6.routeName,
+              ),
+              DayButton(
+                titleText: Day7.dayTitle,
+                routeName: Day7.routeName,
+              ),
+              DayButton(
+                titleText: Day8.dayTitle,
+                routeName: Day8.routeName,
+              ),
+              DayButton(
+                titleText: Day9.dayTitle,
+                routeName: Day9.routeName,
+              ),
+              const DayButton(
+                titleText: Day10.dayTitle,
+                routeName: Day10.routeName,
+              ),
+              DayButton(
+                titleText: Day11.dayTitle,
+                routeName: Day11.routeName,
+              ),
+              DayButton(
+                titleText: Day12.dayTitle,
+                routeName: Day12.routeName,
+              ),
+              DayButton(
+                titleText: Day13.dayTitle,
+                routeName: Day13.routeName,
+              ),
+            ],
+          ),
         ),
       ),
     );

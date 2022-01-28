@@ -3,9 +3,9 @@ import 'package:flutter/material.dart';
 
 class Day10 extends StatelessWidget {
   Day10({Key? key}) : super(key: key);
-  static String routeName = 'day10';
+  static const String routeName = 'day10';
   final bool isExample = false;
-  static String dayTitle = 'Day 10: Syntax Scoring';
+  static const String dayTitle = 'Day 10: Syntax Scoring';
 
   @override
   Widget build(BuildContext context) {
@@ -13,7 +13,7 @@ class Day10 extends StatelessWidget {
     final resultPart2 = doPart2();
     return Scaffold(
       appBar: AppBar(
-        title: Text(dayTitle),
+        title: const Text(dayTitle),
       ),
       body: Center(
         child: Column(
@@ -87,7 +87,7 @@ class Day10 extends StatelessWidget {
     return '';
   }
 
-  List<DelimPair> delimPairs = [
+  final List<DelimPair> delimPairs = [
     DelimPair(
       left: '(',
       right: ')',

@@ -1,10 +1,50 @@
 import 'package:flutter/material.dart';
 
+class DotGrid extends StatelessWidget {
+  const DotGrid({Key? key, required this.dGrid}) : super(key: key);
+
+  final Grid dGrid;
+
+  @override
+  Widget build(BuildContext context) {
+    return SingleChildScrollView(
+      child: Container(
+        height: 150,
+        width: 1000,
+        padding: const EdgeInsets.symmetric(horizontal: 3.0, vertical: 3.0),
+        color: Colors.lightBlue,
+        child: GridView.builder(
+          itemCount: dGrid.height * dGrid.width,
+          itemBuilder: (context, index) {
+            int row = index ~/ dGrid.width;
+            int col = index % dGrid.width;
+
+            final color = dGrid.grid[row][col] ? Colors.black : Colors.lightBlueAccent;
+            return Container(
+              height: 10,
+              width: 10,
+              decoration: BoxDecoration(
+                color: color,
+                shape: BoxShape.rectangle,
+
+              ),
+            );
+          },
+          gridDelegate:  SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: dGrid.width,
+            mainAxisSpacing: 4,
+            crossAxisSpacing: 5,
+          ),
+        ),
+      ),
+    );
+  }
+}
 
 class Day13 extends StatelessWidget {
   const Day13({Key? key}) : super(key: key);
   static String routeName = 'day13';
-  final bool isExample = true;
+  final bool isExample = false;
   static String dayTitle = 'Day 13: Transparent Origami';
 
   @override
@@ -22,20 +62,21 @@ class Day13 extends StatelessWidget {
               height: 200,
             ),
             SelectableText('Svar dag 13 del 1: $resultPart1'),
-            SelectableText('Svar dag 13 del 2 : $resultPart2'),
+            const SizedBox(height: 50,),
+            const Text('Svar dag 13 del 2 :'),
+            const SizedBox(height: 10,),
+            DotGrid(dGrid: resultPart2),
           ],
         ),
       ),
     );
   }
 
-
-
   int doPart1() {
     final lines = getInput(isExample);
     List<String> foldInstructions = [];
     List<Point> pointList = [];
-    for ( final line in lines ) {
+    for (final line in lines) {
       if (line.contains('fold')) {
         foldInstructions.add(line);
       } else {
@@ -47,19 +88,40 @@ class Day13 extends StatelessWidget {
         }
       }
     }
+    Grid grid = Grid.from(pointList);
+    grid.fold(foldInstructions[0]);
 
-
-    return 0;
+    return grid.countDots();
   }
 
-  int doPart2() {
-    return 0;
+  Grid doPart2() {
+    final lines = getInput(isExample);
+    List<String> foldInstructions = [];
+    List<Point> pointList = [];
+    for (final line in lines) {
+      if (line.contains('fold')) {
+        foldInstructions.add(line);
+      } else {
+        if (line.isNotEmpty) {
+          final points = line.split(',');
+          int col = int.parse(points[0]);
+          int row = int.parse(points[1]);
+          pointList.add(Point(col, row));
+        }
+      }
+    }
+    Grid grid = Grid.from(pointList);
+    for (final fold in foldInstructions) {
+      grid.fold(fold);
+    }
+    grid.printGrid();
+    return grid;
   }
 
   List<String> getInput(bool example) {
     late List<String> lines;
     if (example) {
-      lines =  exampleInputText.split('\n');
+      lines = exampleInputText.split('\n');
     } else {
       lines = inputText.split('\n');
     }
@@ -67,14 +129,82 @@ class Day13 extends StatelessWidget {
   }
 }
 
+class Grid {
+  late List<List<bool>> grid;
+  late int width;
+  late int height;
+
+  Grid.from(List<Point> pList) {
+    grid = [];
+    height = 0;
+    width = 0;
+    for (final point in pList) {
+      if (point.col > width) width = point.col;
+      if (point.row > height) height = point.row;
+    }
+    width++;
+    height++;
+    for (int r = 0; r <= height; r++) {
+      grid.add(List.filled(width, false));
+    }
+    for (final point in pList) {
+      grid[point.row][point.col] = true;
+    }
+  }
+
+  void printGrid() {
+    debugPrint('--------------');
+    for (int row = 0; row < height; row++) {
+      String toPrint = '';
+      for (int col = 0; col < width; col++) {
+        toPrint += grid[row][col] ? '#' : '.';
+      }
+      debugPrint(toPrint);
+    }
+  }
+
+  void fold(String foldInstruction) {
+    final instr = foldInstruction.split('=');
+    final axis = instr[0].substring(instr[0].length - 1);
+    int foldPos = int.parse(instr[1]);
+    if (axis == 'x') {
+      for (int row = 0; row < height; row++) {
+        for (int col = foldPos; col < width; col++) {
+          int delta = col - foldPos;
+          if (grid[row][col]) grid[row][foldPos - delta] = true;
+        }
+      }
+      width = foldPos;
+    }
+    if (axis == 'y') {
+      for (int row = foldPos; row < height; row++) {
+        for (int col = 0; col < width; col++) {
+          int delta = row - foldPos;
+          if (grid[row][col]) grid[foldPos - delta][col] = true;
+        }
+      }
+      height = foldPos;
+    }
+  }
+
+  int countDots() {
+    int counter = 0;
+    for (int row = 0; row < height; row++) {
+      for (int col = 0; col < width; col++) {
+        if (grid[row][col]) counter++;
+      }
+    }
+    return counter;
+  }
+}
+
 class Point {
-  int col,row;
+  int col, row;
 
   Point(this.col, this.row);
 }
 
-String exampleInputText =
-'''6,10
+String exampleInputText = '''6,10
 0,14
 9,10
 0,3
@@ -96,8 +226,7 @@ String exampleInputText =
 fold along y=7
 fold along x=5''';
 
-String inputText =
-'''726,774
+String inputText = '''726,774
 246,695
 579,249
 691,724
