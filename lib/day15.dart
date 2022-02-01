@@ -5,7 +5,7 @@ const int infinity = 99999999999999;
 class Day15 extends StatelessWidget {
   const Day15({Key? key}) : super(key: key);
   static String routeName = 'day15';
-  final bool isExample = true;
+  final bool isExample = false;
   static String dayTitle = 'Day 15: Chiton';
 
   @override
@@ -38,7 +38,14 @@ class Day15 extends StatelessWidget {
   }
 
   int doPart2() {
-    return 0;
+    final startTime = DateTime.now();
+    final grid = Grid.expandedFrom(getInput(isExample));
+    grid.printGrid();
+    int minTotalRisk = grid.findLeastRisk(grid.nodes[0][0]);
+    final endTime = DateTime.now();
+    final totalTime = endTime.difference(startTime);
+    debugPrint('Total tid : ${totalTime.inMinutes} minuter');
+    return minTotalRisk;
   }
 
   List<List<int>> getInput(bool example) {
@@ -76,32 +83,60 @@ class Grid {
     }
   }
 
+  Grid.expandedFrom(List<List<int>> input) {
+    nodes = [];
+    int origHeight = input.length;
+    int origWidth = input[0].length;
+    for (int rowExpand = 0; rowExpand < 5; rowExpand++) {
+      for (int row = 0; row < origHeight; row++) {
+      List<Node> nodeLine = [];
+      for (int colExpand = 0; colExpand < 5; colExpand++) {
+          for (int col = 0; col < origWidth; col++) {
+            int destRow = row + rowExpand * origHeight;
+            int destCol = col + colExpand * origWidth;
+            int origRisk = input[row][col];
+            int newRisk = origRisk + rowExpand + colExpand;
+            while (newRisk > 9) {
+              newRisk -= 9;
+            }
+            nodeLine.add( Node(newRisk, Pos(destRow, destCol)));
+          }
+        }
+        nodes.add(nodeLine);
+      }
+    }
+  }
+
   String intFixed(int n, int count) => n.toString().padLeft(count, "0");
 
-  printTotalRiskGrid(Node currentNode, {List<Node>? neighbours, Node? currNeighbour}) {
+  printTotalRiskGrid(
+      {required Node currentNode,
+      List<Node>? neighbours,
+      Node? currNeighbour,
+      bool? hideVisited}) {
     for (final row in nodes) {
       String toPrint = '';
       for (final node in row) {
         String firstChar = ' ';
-        if ( node == currentNode) {
+        if (node == currentNode) {
           firstChar = '*';
         }
-        if ( neighbours != null ) {
-          if ( neighbours.contains(node)) {
+        if (neighbours != null) {
+          if (neighbours.contains(node)) {
             firstChar = '-';
           }
         }
-        if ( currNeighbour != null ) {
-          if ( currNeighbour == node) {
+        if (currNeighbour != null) {
+          if (currNeighbour == node) {
             firstChar = '>';
           }
         }
-        if ( node.visited ) {
+        if (node.visited && (hideVisited ?? false)) {
           toPrint += firstChar + '    ';
         } else {
           int riskLevel = node.totalRiskToThisNode;
           if (riskLevel > 9999) {
-            toPrint += firstChar +'####';
+            toPrint += firstChar + '####';
           } else {
             toPrint += firstChar + intFixed(riskLevel, 4);
           }
@@ -135,6 +170,7 @@ class Grid {
   int findLeastRisk(Node currentNode) {
     final Pos destination = Pos(width() - 1, height() - 1);
     List<Node> unvisited = [];
+    List<Node> unvisitedNotInfinity = [];
     for (final nodeLine in nodes) {
       unvisited.addAll(nodeLine);
     }
@@ -143,26 +179,35 @@ class Grid {
       int lowestNeighbourRisk = infinity;
       List<Node> neighbours = getNeighbours(node: currentNode);
       for (final neighbour in neighbours) {
-        printTotalRiskGrid(currentNode, neighbours: neighbours, currNeighbour: neighbour);
+        //printTotalRiskGrid(currentNode, neighbours: neighbours, currNeighbour: neighbour);
         int riskThisPathToThisNode =
             neighbour.riskLevel + currentNode.totalRiskToThisNode;
         if (riskThisPathToThisNode < neighbour.totalRiskToThisNode) {
           neighbour.totalRiskToThisNode = riskThisPathToThisNode;
+          unvisited.remove(neighbour);
+          unvisitedNotInfinity.add(neighbour);
         }
         if (riskThisPathToThisNode < lowestNeighbourRisk) {
           lowestNeighbourRisk = riskThisPathToThisNode;
         }
-        if ( neighbour.totalRiskToThisNode < lowestNeighbourRisk ) {
+        if (neighbour.totalRiskToThisNode < lowestNeighbourRisk) {
           lowestNeighbourRisk = neighbour.totalRiskToThisNode;
         }
-        printTotalRiskGrid(currentNode);
+        //printTotalRiskGrid(currentNode);
       }
       currentNode.visited = true;
+      if (currentNode.pos.equals(destination)) {
+        //printTotalRiskGrid(currentNode: currentNode);
+        return currentNode.totalRiskToThisNode;
+      }
       unvisited.remove(currentNode);
-      currentNode = getUnvisitedWithLowestRisk(unvisited);
-      printTotalRiskGrid(currentNode);
+      unvisitedNotInfinity.remove(currentNode);
+      int noLeft = unvisited.length;
+      if ( noLeft % 1000 == 0) debugPrint('Antal återstående : $noLeft');
+      currentNode = getUnvisitedWithLowestRisk(unvisited, unvisitedNotInfinity);
+      // printTotalRiskGrid(currentNode);
     }
-    return currentNode.totalRiskToThisNode;
+    return infinity;
   }
 
   List<Node> getNeighbours({required Node node}) {
@@ -180,15 +225,23 @@ class Grid {
     neighbours.removeWhere((node) => node.visited);
     neighbours
         .sort((a, b) => a.totalRiskToThisNode.compareTo(b.totalRiskToThisNode));
-    for (final neighbour in neighbours ) {
-      debugPrint(' ${neighbour.totalRiskToThisNode}, ');
-    }
     return neighbours;
   }
 
-  Node getUnvisitedWithLowestRisk(List<Node> unvisited) {
-    unvisited.sort((a, b) => a.totalRiskToThisNode.compareTo(b.totalRiskToThisNode));
-    return unvisited[0];
+  Node getUnvisitedWithLowestRisk(List<Node> unvisited, List<Node> unvisitedNotInfinity) {
+    int lowestRisk = infinity;
+    late Node nodeToReturn;
+    List<Node> listToSearch = unvisited;
+    if (unvisitedNotInfinity.isNotEmpty) {
+      listToSearch = unvisitedNotInfinity;
+    }
+    for ( final node in listToSearch) {
+      if ( node.totalRiskToThisNode < lowestRisk ) {
+        lowestRisk = node.totalRiskToThisNode;
+        nodeToReturn = node;
+      }
+    }
+    return nodeToReturn;
   }
 }
 
@@ -197,6 +250,10 @@ class Pos {
   int col;
 
   Pos(this.row, this.col);
+
+  bool equals(Pos destination) {
+    return (row == destination.row && col == destination.col);
+  }
 }
 
 class Node {
