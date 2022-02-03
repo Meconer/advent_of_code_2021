@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 class Day16 extends StatelessWidget {
-  const Day16({Key? key}) : super(key: key);
+  Day16({Key? key}) : super(key: key);
   static String routeName = 'day16';
   final bool isExample = true;
   static String dayTitle = 'Day 16: Packet Decoder';
@@ -20,18 +20,21 @@ class Day16 extends StatelessWidget {
             const SizedBox(
               height: 200,
             ),
-            SelectableText('Svar dag 15 del 1: $resultPart1'),
-            SelectableText('Svar dag 15 del 2 : $resultPart2'),
+            SelectableText('Svar dag 16 del 1: $resultPart1'),
+            SelectableText('Svar dag 16 del 2 : $resultPart2'),
           ],
         ),
       ),
     );
   }
 
+  late BinaryProvider baseBinaryProvider;
+
   int doPart1() {
     String hexStr = getInput(isExample);
     String binaryStr = convertToBinary(hexStr);
-    int result = decodeStr(binaryStr);
+    baseBinaryProvider = BinaryProvider(binaryStr);
+    int result = decodeStr(baseBinaryProvider);
 
     return result;
   }
@@ -62,60 +65,131 @@ class Day16 extends StatelessWidget {
     return s;
   }
 
-  int decodeStr(String binaryStr) {
-    int version = int.parse(binaryStr.substring(0, 3), radix: 2);
-    int packetType = int.parse(binaryStr.substring(3, 6), radix: 2);
-    int value;
-    Packet packet = Packet(version, packetType);
-    binaryStr = binaryStr.substring(6);
-    if (packetType == 4) {
-      // Literal
-      final valueAndLength = getLiteral(binaryStr);
-      binaryStr = binaryStr.substring(valueAndLength.length);
-      value = valueAndLength.value;
-    } else {
-      // Operator packet
-      final operatorPacket = getOperatorPacket(binaryStr);
-    }
-    return version;
+  int decodeStr(BinaryProvider binaryProvider) {
+    Packet? packet = getPacket(binaryProvider);
+
+    return packet!.countVersionSum();
   }
 
-  ValueAndLength getLiteral(String binaryStr) {
-    int val = 0;
-    int length = 0;
-    while (binaryStr[0] == '1') {
-      val = val * 16 + int.parse(binaryStr.substring(1, 5), radix: 2);
-      binaryStr = binaryStr.substring(5);
-      length += 5;
+  int getLiteral(BinaryProvider binaryProvider) {
+    int value = 0;
+    String continueBit = binaryProvider.getBits(1);
+    while (continueBit == '1') {
+      value = value * 16 + int.parse(binaryProvider.getBits(4), radix: 2);
+      continueBit = binaryProvider.getBits(1);
     }
-    val = val * 16 + int.parse(binaryStr.substring(1, 5), radix: 2);
-    length += 5;
-    return ValueAndLength(val, length);
+    value = value * 16 + int.parse(binaryProvider.getBits(4), radix: 2);
+    return value;
   }
 
-  OperatorPacket getOperatorPacket(String binaryStr) {
-    int lengthTypeId = int.parse(binaryStr[0], radix: 2);
-    final opPacket = OperatorPacket(lengthTypeId);
-    binaryStr = binaryStr.substring(1);
-
-    if ( lengthTypeId == 0) {
-      opPacket.bitLength = int.parse(binaryStr.substring(0,15), radix: 2);
-      binaryStr = binaryStr.substring(15);
-      final subPacket = getLiteral(binaryStr.substring(0,opPacket.bitLength));
-    } else {
-      opPacket.noOfSubPackets = int.parse(binaryStr.substring(0,10), radix: 2);
+  Packet? getOperatorPacket(BinaryProvider binaryProvider, int version, int packetType) {
+    int lengthTypeId = int.parse(binaryProvider.getBits(1), radix: 2);
+    Packet? opPacket;
+    if (lengthTypeId == 0 ) {
+      int bitLength = int.parse(binaryProvider.getBits(15), radix: 2);
+      opPacket = OperatorPacketWithBitLength(version, packetType, bitLength);
+      BinaryProvider subBinaryProvider = BinaryProvider(binaryProvider.getBits(bitLength));
+      List<Packet>? subPackets = getSubPacketsWithBitLength(subBinaryProvider);
+      opPacket.subPackets = [...opPacket.subPackets, ...subPackets];
+    }
+    if ( lengthTypeId == 1) {
+      int noOfSubPackets = int.parse(binaryProvider.getBits(11), radix: 2);
+      opPacket = OperatorPacketWithNoOfSubPackets(version, packetType, noOfSubPackets);
+      for ( int packetNo = 0 ; packetNo < noOfSubPackets; packetNo++) {
+        opPacket.subPackets.add(getPacket(binaryProvider)!);
+      }
     }
 
     return opPacket;
   }
+
+  int getValue(BinaryProvider binaryProvider, int len) {
+    String s = binaryProvider.getBits(len);
+    int value = int.parse(s, radix: 2);
+    return value;
+  }
+
+  Packet? getPacket(BinaryProvider binaryProvider) {
+    int version = getValue(binaryProvider, 3);
+    int packetType = getValue(binaryProvider, 3);
+    if (packetType == 4) {
+      // Literal
+      final literal = getLiteral(binaryProvider);
+      final packet = LiteralPacket(version, packetType, literal);
+      return packet;
+    } else {
+      // Operator packet
+      final operatorPacket = getOperatorPacket(binaryProvider, version, packetType);
+      return operatorPacket;
+    }
+  }
+
+  List<Packet> getSubPacketsWithBitLength(BinaryProvider binaryProvider) {
+    List<Packet> subPacketList = [];
+    while (binaryProvider.hasBits()) {
+      Packet? packet = getPacket(binaryProvider);
+      subPacketList.add(packet!);
+    }
+    return subPacketList;
+  }
 }
 
-class OperatorPacket {
-  int lengthTypeId;
-  int? bitLength;
-  int? noOfSubPackets;
 
-  OperatorPacket(this.lengthTypeId);
+class BinaryProvider {
+  String binaryStr;
+
+  BinaryProvider(this.binaryStr);
+
+  String getBits(int length) {
+    String s = binaryStr.substring(0, length);
+    binaryStr = binaryStr.substring(length);
+    return s;
+  }
+
+  bool hasBits() {
+    return binaryStr.isNotEmpty;
+  }
+}
+
+class Packet {
+  int version;
+  int packetType;
+
+  List<Packet> subPackets =[];
+
+  Packet(this.version, this.packetType);
+
+  int countVersionSum() {
+    int sum = 0;
+    for ( final packet in subPackets) {
+      sum += packet.countVersionSum();
+    }
+    return sum + version;
+  }
+}
+
+class LiteralPacket extends Packet{
+  int value;
+
+  LiteralPacket(int version, int packetType, this.value) : super(version, packetType);
+
+}
+
+class OperatorPacket extends Packet {
+
+  OperatorPacket(int version, int packetType) : super(version, packetType);
+}
+
+class OperatorPacketWithBitLength extends OperatorPacket{
+  int bitLength;
+
+  OperatorPacketWithBitLength(int version, int packetType, this.bitLength) : super(version, packetType);
+}
+
+class OperatorPacketWithNoOfSubPackets extends Packet {
+  int noOfSubPackets;
+
+  OperatorPacketWithNoOfSubPackets(int version, int packetType, this.noOfSubPackets) : super(version, packetType);
 }
 
 class ValueAndLength {
@@ -125,12 +199,6 @@ class ValueAndLength {
   ValueAndLength(this.value, this.length);
 }
 
-class Packet {
-  int version;
-  int packetType;
-
-  Packet(this.version, this.packetType);
-}
 
 String exampleInputText = '''38006F45291200''';
 
