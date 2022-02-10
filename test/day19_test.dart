@@ -1,4 +1,5 @@
 import 'package:advent_of_code/day19.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
@@ -31,10 +32,52 @@ void main() {
     expect( rotated.z, 3);
   });
 
+  test('Rotation matrixes', () {
+    Vector vec = Vector( 1,2,3);
+    List<Vector> rotated = [];
+    for ( int i = 0 ; i < rotations.length ; i++ ) {
+      rotated.add(rotations[i].mult(vec)); // Rotation about z 90 deg
+    }
+    bool allZero = false;
+    for ( int i = 0 ; i < rotations.length -1  ; i++ ) {
+      for ( int j = i +1 ; j < rotations.length; j++ ) {
+        final dist = rotated[i].distance(rotated[j]);
+        if (dist.x == 0 && dist.y == 0 && dist.z == 0) {
+          debugPrint('i = $i ; j = $j');
+          allZero = true;
+        }
+      }
+    }
+    expect(allZero, false);
+  });
+
   test('Ocean', () {
     Ocean ocean = Ocean.fromInput(exampleInputText.split('\n'));
     expect( ocean.scanners[0].beacons[2].position.y, 591);
     expect( ocean.scanners[4].beacons[25].position.x, 30);
+
+    final refScanner = ocean.scanners[0];
+
+    final scannerToTest = ocean.scanners[1];
+
+    for (var rotation in rotations ) {
+      for ( int i = 0 ; i < 5 ; i++) {
+        final refBeacon = ocean.scanners[0].beacons[i];
+
+        for ( int j = 0 ; j < 6 ; j++) {
+          var  otherBeacon = scannerToTest.beacons[j];
+          otherBeacon.position = rotation.mult(otherBeacon.position);
+          final distance = refBeacon.distance(otherBeacon);
+          Vector otherScannerPosition = Vector(
+              distance.x - otherBeacon.position.x,
+              distance.y - otherBeacon.position.y,
+              distance.z - otherBeacon.position.z) ;
+          debugPrint(' Dist  : ${otherScannerPosition.x}, ${otherScannerPosition.y}, ${otherScannerPosition.z}');
+        }
+      }
+      debugPrint('------------------------');
+    }
+
   });
 
   test('Beacon', () {
@@ -45,6 +88,8 @@ void main() {
     expect( distance.y, 1246);
     expect( distance.z, 1199);
   });
+
+
 }
 
 String exampleInputText =

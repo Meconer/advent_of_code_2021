@@ -61,6 +61,14 @@ class Vector {
     Vector vec = Vector(x, y, z);
     return vec;
   }
+
+
+  Vector distance(Vector otherVector) {
+    int dx = otherVector.x - x;
+    int dy = otherVector.y - y;
+    int dz = otherVector.z - z;
+    return Vector(dx, dy, dz);
+  }
 }
 
 class Matrix {
@@ -88,6 +96,7 @@ class Matrix {
     int z = vectorList[2][0] * vector.x + vectorList[2][1] * vector.y + vectorList[2][2] * vector.z;
     return Vector(x, y, z);
   }
+
 }
 
 class Beacon {
@@ -112,37 +121,40 @@ class Beacon {
 
 // Rotation index is 0 to 23 which cover all possible rotations
 List<Matrix> rotations = [
-  Matrix.fromValues(1, 0, 0, 0, 1, 0, 0, 0, 1),   // No rotation
-  Matrix.fromValues(0, -1, 0, 1, 0, 0, 0, 0, 1),  // 90 deg about z
-  Matrix.fromValues(-1, 0, 0, 0, -1, 0, 0, 0, 1), // 180 deg about z
-  Matrix.fromValues(0, 1, 0, -1, 0, 0, 0, 0, 1),  // 270 deg about z
+  Matrix.fromValues(1, 0, 0, 0, 1, 0, 0, 0, 1),   // 0 No rotation
+  Matrix.fromValues(0, -1, 0, 1, 0, 0, 0, 0, 1),  // 1 90 deg about z
+  Matrix.fromValues(-1, 0, 0, 0, -1, 0, 0, 0, 1), // 2 180 deg about z
+  Matrix.fromValues(0, 1, 0, -1, 0, 0, 0, 0, 1),  // 3 270 deg about z
 
-  Matrix.fromValues(1, 0, 0, 0, 0, -1, 0, 1, 0),   // 0 deg about z 90 deg about x
-  Matrix.fromValues(0, 0, 1, 1, 0, 0, 0, 1, 0),   // 90 deg about z 90 deg about x
-  Matrix.fromValues(-1, 0, 0, 0, 0, 1, 0, 1, 0), // 180 deg about z 90 deg about x
-  Matrix.fromValues(0, 0, -1, -1, 0, 0, 0, 1, 0), // 270 deg about z 90 deg about x
+  // 90 deg about x and then :
+  Matrix.fromValues(1, 0, 0, 0, 0, -1, 0, 1, 0),   // 4 0 deg about z
+  Matrix.fromValues(0, 0, 1, 1, 0, 0, 0, 1, 0),   // 5 90 deg about z
+  Matrix.fromValues(-1, 0, 0, 0, 0, 1, 0, 1, 0), // 6 180 deg about z
+  Matrix.fromValues(0, 0, -1, -1, 0, 0, 0, 1, 0), // 7 270 deg about z
 
-  Matrix.fromValues(1, 0, 0, 0, -1, 0, 0, 0, -1),   // 0 deg about z and 180 about x
-  Matrix.fromValues(0, 1, 0, 1, 0, 0, 0, 0, -1),   // 90 deg about z and 180 about x
-  Matrix.fromValues(-1, 0, 0, 0, 1, 0, 0, 0, -1), // 180 deg about z and 180 about x
-  Matrix.fromValues(0, -1, 0, -1, 0, 0, 0, 0, -1), // 270 deg about z and 180 about x
+  // 180 deg about x and then
+  Matrix.fromValues(1, 0, 0, 0, -1, 0, 0, 0, -1),   // 8 0 deg about z
+  Matrix.fromValues(0, 1, 0, 1, 0, 0, 0, 0, -1),   // 9 90 deg about z
+  Matrix.fromValues(-1, 0, 0, 0, 1, 0, 0, 0, -1), // 10 180 deg about z
+  Matrix.fromValues(0, -1, 0, -1, 0, 0, 0, 0, -1), // 11 270 deg about z
 
-  Matrix.fromValues(1, 0, 0, 0, 0, 1, 0, -1, 0),  // 0 deg about z and 270 about x
-  Matrix.fromValues(0, 0, -1, 1, 0, 0, 0, -1, 0), // 90 deg about z and 270 about x
-  Matrix.fromValues(-1, 0, 0, 0, 0, -1, 0, -1, 0), // 180 deg about z and 270 about x
-  Matrix.fromValues(0, 0, 1, -1, 0, 0, 0, -1, 0), // 270 deg about z and 270 about x
+  // 270 deg about x and then
+  Matrix.fromValues(1, 0, 0, 0, 0, 1, 0, -1, 0),  // 12 0 deg about z and 270 about x
+  Matrix.fromValues(0, 0, -1, 1, 0, 0, 0, -1, 0), // 13 90 deg about z and 270 about x
+  Matrix.fromValues(-1, 0, 0, 0, 0, -1, 0, -1, 0), // 14 180 deg about z and 270 about x
+  Matrix.fromValues(0, 0, 1, -1, 0, 0, 0, -1, 0), // 15 270 deg about z and 270 about x
 
+  // 90 deg about y and then
+  Matrix.fromValues(0, 0, 1, 0, 1, 0, -1, 0, 0),   // 16 0 deg about z
+  Matrix.fromValues(0, -1, 0, 0, 0, 1, -1, 0, 0),   // 17 90 deg about z
+  Matrix.fromValues(0, 0, -1, 0, -1, 0, -1, 0, 0), // 18 180 deg about z
+  Matrix.fromValues(0, 1, 0, 0, 0, -1, -1, 0, 0), // 19 270 deg about z
 
-
-  Matrix.fromValues(1, 0, 0, 0, 1, 0, 0, 0, 1),   // 0 deg about z and 90 about x 90 deg about y
-  Matrix.fromValues(0, 1, 0, 1, 0, 0, 0, 0, 1),   // 90 deg about z and 90 about x 90 deg about y
-  Matrix.fromValues(-1, 0, 0, 0, -1, 0, 0, 0, 1), // 180 deg about z and 90 about x 90 deg about y
-  Matrix.fromValues(0, -1, 0, -1, 0, 0, 0, 0, 1), // 270 deg about z and 90 about x 90 deg about y
-
-  Matrix.fromValues(1, 0, 0, 0, 1, 0, 0, 0, 1),   // 0 deg about z and 180 about x 90 deg about y
-  Matrix.fromValues(0, 1, 0, 1, 0, 0, 0, 0, 1),   // 90 deg about z and 180 about x 90 deg about y
-  Matrix.fromValues(-1, 0, 0, 0, -1, 0, 0, 0, 1), // 180 deg about z and 180 about x 90 deg about y
-  Matrix.fromValues(0, -1, 0, -1, 0, 0, 0, 0, 1), // 270 deg about z and 180 about x 90 deg about y
+  // 270 deg about y and then
+  Matrix.fromValues(0, 0, -1, 0, 1, 0, 1, 0, 0),   // 16 0 deg about z
+  Matrix.fromValues(0, -1, 0, 0, 0, -1, 1, 0, 0),   // 17 90 deg about z
+  Matrix.fromValues(0, 0, 1, 0, -1, 0, 1, 0, 0), // 18 180 deg about z
+  Matrix.fromValues(0, 1, 0, 0, 0, 1, 1, 0, 0), // 19 270 deg about z
 ];
 
 
