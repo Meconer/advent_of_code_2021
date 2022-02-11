@@ -3,7 +3,6 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
-
   test('Vector', () {
     Vector pos = Vector.fromStr('1,2,3');
     expect(pos.x, 1);
@@ -17,30 +16,30 @@ void main() {
   });
 
   test('Rotation', () {
-    Vector vec = Vector( 1,2,3);
-    var rotated = rotations[1].mult(vec); // Rotation about z 90 deg
-    expect( rotated.x, -2);
-    expect( rotated.y, 1);
-    expect( rotated.z, 3);
-    rotated = rotations[2].mult(vec); // Rotation about z 180 deg
-    expect( rotated.x, -1);
-    expect( rotated.y, -2);
-    expect( rotated.z, 3);
-    rotated = rotations[3].mult(vec); // Rotation about z 270 deg
-    expect( rotated.x, 2);
-    expect( rotated.y, -1);
-    expect( rotated.z, 3);
+    Vector vec = Vector(1, 2, 3);
+    var rotated = rotations[1].multiply(vec); // Rotation about z 90 deg
+    expect(rotated.x, -2);
+    expect(rotated.y, 1);
+    expect(rotated.z, 3);
+    rotated = rotations[2].multiply(vec); // Rotation about z 180 deg
+    expect(rotated.x, -1);
+    expect(rotated.y, -2);
+    expect(rotated.z, 3);
+    rotated = rotations[3].multiply(vec); // Rotation about z 270 deg
+    expect(rotated.x, 2);
+    expect(rotated.y, -1);
+    expect(rotated.z, 3);
   });
 
   test('Rotation matrixes', () {
-    Vector vec = Vector( 1,2,3);
+    Vector vec = Vector(1, 2, 3);
     List<Vector> rotated = [];
-    for ( int i = 0 ; i < rotations.length ; i++ ) {
-      rotated.add(rotations[i].mult(vec)); // Rotation about z 90 deg
+    for (int i = 0; i < rotations.length; i++) {
+      rotated.add(rotations[i].multiply(vec)); // Rotation about z 90 deg
     }
     bool allZero = false;
-    for ( int i = 0 ; i < rotations.length -1  ; i++ ) {
-      for ( int j = i +1 ; j < rotations.length; j++ ) {
+    for (int i = 0; i < rotations.length - 1; i++) {
+      for (int j = i + 1; j < rotations.length; j++) {
         final dist = rotated[i].distance(rotated[j]);
         if (dist.x == 0 && dist.y == 0 && dist.z == 0) {
           debugPrint('i = $i ; j = $j');
@@ -53,47 +52,51 @@ void main() {
 
   test('Ocean', () {
     Ocean ocean = Ocean.fromInput(exampleInputText.split('\n'));
-    expect( ocean.scanners[0].beacons[2].position.y, 591);
-    expect( ocean.scanners[4].beacons[25].position.x, 30);
+    expect(ocean.scanners[0].beacons[2].position.y, 591);
+    expect(ocean.scanners[4].beacons[25].position.x, 30);
 
     final refScanner = ocean.scanners[0];
 
     final scannerToTest = ocean.scanners[1];
 
-    for (var rotation in rotations ) {
-      for ( int i = 0 ; i < 5 ; i++) {
-        final refBeacon = ocean.scanners[0].beacons[i];
+    var scannerToTestLocation = refScanner.findCommonLocation(scannerToTest);
+    expect(scannerToTestLocation, isNotNull);
+    debugPrint('scannerToTestLocation.location ${scannerToTestLocation!.location.x}' );
+    debugPrint('scannerToTestLocation.location ${scannerToTestLocation.location.y}' );
+    debugPrint('scannerToTestLocation.location ${scannerToTestLocation.location.z}' );
 
-        for ( int j = 0 ; j < 6 ; j++) {
-          var  otherBeacon = scannerToTest.beacons[j];
-          otherBeacon.position = rotation.mult(otherBeacon.position);
-          final distance = refBeacon.distance(otherBeacon);
-          Vector otherScannerPosition = Vector(
-              distance.x - otherBeacon.position.x,
-              distance.y - otherBeacon.position.y,
-              distance.z - otherBeacon.position.z) ;
-          debugPrint(' Dist  : ${otherScannerPosition.x}, ${otherScannerPosition.y}, ${otherScannerPosition.z}');
+    final secondScannerToTest = ocean.scanners[2];
+    scannerToTestLocation = refScanner.findCommonLocation(secondScannerToTest);
+    expect(scannerToTestLocation, isNull);
+  });
+
+  test('Scanning entire ocean', () {
+    Ocean ocean = Ocean.fromInput(exampleInputText.split('\n'));
+    final refScanner = ocean.scanners[0];
+    refScanner.actualLocation = Vector(0,0,0);
+    while (ocean.isNotTotallyScanned()) {
+      for ( var scanner in ocean.scanners.sublist(1)) {
+        final locationOfScanner = refScanner.findCommonLocation(scanner);
+        if ( locationOfScanner != null) {
+          scanner.actualLocation = locationOfScanner.location;
+          scanner.reOrient(locationOfScanner.orientation);
         }
       }
-      debugPrint('------------------------');
     }
 
   });
 
   test('Beacon', () {
-    Beacon beacon1 = Beacon(Vector.fromStr('-618,-824,-621'), Vector(0,0,0));
-    Beacon beacon2 = Beacon(Vector.fromStr('686,422,578'), Vector(0,0,0));
+    Beacon beacon1 = Beacon(Vector.fromStr('-618,-824,-621'));
+    Beacon beacon2 = Beacon(Vector.fromStr('686,422,578'));
     final distance = beacon1.distance(beacon2);
-    expect( distance.x, 1304);
-    expect( distance.y, 1246);
-    expect( distance.z, 1199);
+    expect(distance.x, 1304);
+    expect(distance.y, 1246);
+    expect(distance.z, 1199);
   });
-
-
 }
 
-String exampleInputText =
-'''--- scanner 0 ---
+String exampleInputText = '''--- scanner 0 ---
 404,-588,-901
 528,-643,409
 -838,591,734
