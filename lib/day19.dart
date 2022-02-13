@@ -116,11 +116,12 @@ class LocationCounterItem {
 
 class Matrix {
   late List<List<int>> vectorList;
+  String? name;
 
   Matrix(this.vectorList);
 
   Matrix.fromValues(int v00, int v01, int v02, int v10, int v11, int v12,
-      int v20, int v21, int v22) {
+      int v20, int v21, int v22,{ String? name}) {
 
     Vector vec0 = Vector(v00, v01, v02);
     Vector vec1 = Vector(v10, v11, v12);
@@ -131,6 +132,7 @@ class Matrix {
       [v10,v11,v12],
       [v20,v21,v22],
     ];
+    if ( name != null ) this.name = name;
   }
 
   Vector multiply(Vector vector) {
@@ -138,6 +140,15 @@ class Matrix {
     int y = vectorList[1][0] * vector.x + vectorList[1][1] * vector.y + vectorList[1][2] * vector.z;
     int z = vectorList[2][0] * vector.x + vectorList[2][1] * vector.y + vectorList[2][2] * vector.z;
     return Vector(x, y, z);
+  }
+
+  matrixPrint() {
+    if ( name != null ) {
+      debugPrint(name);
+    }
+    for ( int i = 0 ; i < 3 ; i++) {
+      debugPrint( '| ${vectorList[i][0]}, ${vectorList[i][1]}, ${vectorList[i][2]} |' );
+    }
   }
 
 }
@@ -157,40 +168,36 @@ class Beacon {
 
 // Rotation index is 0 to 23 which cover all possible rotations
 List<Matrix> rotations = [
-  Matrix.fromValues(1, 0, 0, 0, 1, 0, 0, 0, 1),   // 0 No rotation
-  Matrix.fromValues(0, -1, 0, 1, 0, 0, 0, 0, 1),  // 1 90 deg about z
-  Matrix.fromValues(-1, 0, 0, 0, -1, 0, 0, 0, 1), // 2 180 deg about z
-  Matrix.fromValues(0, 1, 0, -1, 0, 0, 0, 0, 1),  // 3 270 deg about z
+  Matrix.fromValues(1, 0, 0, 0, 1, 0, 0, 0, 1, name: '0'),   // 0 No rotation
+  Matrix.fromValues(0, -1, 0, 1, 0, 0, 0, 0, 1, name: '90 z'),
+  Matrix.fromValues(-1, 0, 0, 0, -1, 0, 0, 0, 1, name: '180 z'),
+  Matrix.fromValues(0, 1, 0, -1, 0, 0, 0, 0, 1, name: '270 z'),
 
-  // 90 deg about x and then :
-  Matrix.fromValues(1, 0, 0, 0, 0, -1, 0, 1, 0),   // 4 0 deg about z
-  Matrix.fromValues(0, 0, 1, 1, 0, 0, 0, 1, 0),   // 5 90 deg about z
-  Matrix.fromValues(-1, 0, 0, 0, 0, 1, 0, 1, 0), // 6 180 deg about z
-  Matrix.fromValues(0, 0, -1, -1, 0, 0, 0, 1, 0), // 7 270 deg about z
+  Matrix.fromValues(1, 0, 0, 0, 0, -1, 0, 1, 0, name: '90 x : 0 z'),
+  Matrix.fromValues(0, 0, 1, 1, 0, 0, 0, 1, 0, name: '90 x : 90 z'),
+  Matrix.fromValues(-1, 0, 0, 0, 0, 1, 0, 1, 0, name: '90 x : 180 z'),
+  Matrix.fromValues(0, 0, -1, -1, 0, 0, 0, 1, 0, name: '90 x : 270 z'),
 
-  // 180 deg about x and then
-  Matrix.fromValues(1, 0, 0, 0, -1, 0, 0, 0, -1),   // 8 0 deg about z
-  Matrix.fromValues(0, 1, 0, 1, 0, 0, 0, 0, -1),   // 9 90 deg about z
-  Matrix.fromValues(-1, 0, 0, 0, 1, 0, 0, 0, -1), // 10 180 deg about z
-  Matrix.fromValues(0, -1, 0, -1, 0, 0, 0, 0, -1), // 11 270 deg about z
+  Matrix.fromValues(1, 0, 0, 0, -1, 0, 0, 0, -1, name: '180 x : 0 z'),
+  Matrix.fromValues(0, 1, 0, 1, 0, 0, 0, 0, -1, name: '180 x : 90 z'),
+  Matrix.fromValues(-1, 0, 0, 0, 1, 0, 0, 0, -1, name: '180 x : 180 z'),
+  Matrix.fromValues(0, -1, 0, -1, 0, 0, 0, 0, -1, name: '180 x : 270 z'),
 
-  // 270 deg about x and then
-  Matrix.fromValues(1, 0, 0, 0, 0, 1, 0, -1, 0),  // 12 0 deg about z and 270 about x
-  Matrix.fromValues(0, 0, -1, 1, 0, 0, 0, -1, 0), // 13 90 deg about z and 270 about x
-  Matrix.fromValues(-1, 0, 0, 0, 0, -1, 0, -1, 0), // 14 180 deg about z and 270 about x
-  Matrix.fromValues(0, 0, 1, -1, 0, 0, 0, -1, 0), // 15 270 deg about z and 270 about x
+  Matrix.fromValues(1, 0, 0, 0, 0, 1, 0, -1, 0, name: '270 x : 0 z'),
+  Matrix.fromValues(0, 0, -1, 1, 0, 0, 0, -1, 0, name: '270 x : 90 z'),
+  Matrix.fromValues(-1, 0, 0, 0, 0, -1, 0, -1, 0, name: '270 x : 180 z'),
+  Matrix.fromValues(0, 0, 1, -1, 0, 0, 0, -1, 0, name: '270 x : 270 z'),
 
-  // 90 deg about y and then
-  Matrix.fromValues(0, 0, 1, 0, 1, 0, -1, 0, 0),   // 16 0 deg about z
-  Matrix.fromValues(0, -1, 0, 0, 0, 1, -1, 0, 0),   // 17 90 deg about z
-  Matrix.fromValues(0, 0, -1, 0, -1, 0, -1, 0, 0), // 18 180 deg about z
-  Matrix.fromValues(0, 1, 0, 0, 0, -1, -1, 0, 0), // 19 270 deg about z
+  Matrix.fromValues(0, 0, 1, 0, 1, 0, -1, 0, 0, name: '90 y : 0 z'),
+  Matrix.fromValues(0, -1, 0, 0, 0, 1, -1, 0, 0, name: '90 y : 90 z'),
+  Matrix.fromValues(0, 0, -1, 0, -1, 0, -1, 0, 0, name: '90 y : 180 z'),
+  Matrix.fromValues(0, 1, 0, 0, 0, -1, -1, 0, 0, name: '90 y : 270 z'),
 
   // 270 deg about y and then
-  Matrix.fromValues(0, 0, -1, 0, 1, 0, 1, 0, 0),   // 16 0 deg about z
-  Matrix.fromValues(0, -1, 0, 0, 0, -1, 1, 0, 0),   // 17 90 deg about z
-  Matrix.fromValues(0, 0, 1, 0, -1, 0, 1, 0, 0), // 18 180 deg about z
-  Matrix.fromValues(0, 1, 0, 0, 0, 1, 1, 0, 0), // 19 270 deg about z
+  Matrix.fromValues(0, 0, -1, 0, 1, 0, 1, 0, 0, name: '270 y : 0 z'),
+  Matrix.fromValues(0, -1, 0, 0, 0, -1, 1, 0, 0, name: '270 y : 90 z'),
+  Matrix.fromValues(0, 0, 1, 0, -1, 0, 1, 0, 0, name: '270 y : 180 z'),
+  Matrix.fromValues(0, 1, 0, 0, 0, 1, 1, 0, 0, name: '270 y : 270 z'),
 ];
 
 
@@ -227,6 +234,7 @@ class Scanner {
             commonLocation = maybeScannerToTestLocation;
             actualLocation = maybeScannerToTestLocation;
             debugPrint(' Dist  : ${commonLocation.x}, ${commonLocation.y}, ${commonLocation.z}');
+            rotation.matrixPrint();
             LocationAndOrientation locationAndOrientation = LocationAndOrientation(commonLocation, rotation);
             return locationAndOrientation;
           }

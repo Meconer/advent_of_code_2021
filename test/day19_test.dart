@@ -76,10 +76,12 @@ void main() {
     refScanner.actualLocation = Vector(0,0,0);
     while (ocean.isNotTotallyScanned()) {
       for ( var scanner in ocean.scanners.sublist(1)) {
-        final locationOfScanner = refScanner.findCommonLocation(scanner);
-        if ( locationOfScanner != null) {
-          scanner.actualLocation = locationOfScanner.location;
-          scanner.reOrient(locationOfScanner.orientation);
+        if ( scanner.actualLocation == null ) {
+          final locationOfScanner = refScanner.findCommonLocation(scanner);
+          if (locationOfScanner != null) {
+            scanner.actualLocation = locationOfScanner.location;
+            scanner.reOrient(locationOfScanner.orientation);
+          }
         }
       }
     }
