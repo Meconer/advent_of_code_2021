@@ -65,9 +65,9 @@ class Vector {
 
 
   Vector distance(Vector otherVector) {
-    int dx = otherVector.x - x;
-    int dy = otherVector.y - y;
-    int dz = otherVector.z - z;
+    int dx = x - otherVector.x;
+    int dy = y - otherVector.y;
+    int dz = z - otherVector.z;
     return Vector(dx, dy, dz);
   }
 
@@ -226,7 +226,8 @@ class Scanner {
           var otherBeacon = scannerToTest.beacons[j];
           var rotatedPosition = rotation.multiply(otherBeacon.position);
 
-          //
+          // If the two beacons to be compared should be common for both scanners then the location of
+          // the scannerToTest would be at this location.
           final maybeScannerToTestLocation = refBeacon.position.distance(
               rotatedPosition);
           int countOnThisLocation = locationCounter.addLocation(maybeScannerToTestLocation);
@@ -252,6 +253,10 @@ class Scanner {
     for ( final beacon in beacons ) {
       beacon.position = rotation.multiply(beacon.position);
     }
+  }
+
+  void addBeaconsFromOtherScanner(Scanner scanner) {
+    throw UnimplementedError();
   }
 }
 

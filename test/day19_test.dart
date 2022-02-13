@@ -81,6 +81,7 @@ void main() {
           if (locationOfScanner != null) {
             scanner.actualLocation = locationOfScanner.location;
             scanner.reOrient(locationOfScanner.orientation);
+            refScanner.addBeaconsFromOtherScanner( scanner);
           }
         }
       }
