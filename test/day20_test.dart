@@ -11,18 +11,18 @@ void main() {
 ..###''';
 
   test('Get input', () {
-    final input = TrenchMap.fromInputString(testInput);
-    expect(input.enhAlgorithmString.length, 512);
-    expect(input.image.imageLines.length, 5);
-    input.image.expand();
-    expect(input.image.imageLines.length, 7);
-    expect(input.image.imageLines[0].length, 7);
-    input.image.print();
+    final trench = TrenchMap.fromInputString(testInput);
+    expect(trench.enhAlgorithmString.length, 512);
+    expect(trench.image.imageLines.length, 5);
+    trench.image.expand();
+    expect(trench.image.imageLines.length, 7);
+    expect(trench.image.imageLines[0].length, 7);
+    trench.image.print();
   });
 
   test('Decode algorithm', () {
-    final input = TrenchMap.fromInputString(testInput);
-
+    final trenchMap = TrenchMap.fromInputString(testInput);
+    trenchMap.enhanceImage();
   });
 
 }

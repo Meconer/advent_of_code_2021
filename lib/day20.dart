@@ -48,19 +48,21 @@ class Day20 extends StatelessWidget {
 
 
 class TrenchMap {
-  late String enhAlgorithmString;
   late Image image;
+  late String enhAlgorithmString;
 
   TrenchMap.fromInputString(String input) {
     final lines = input.split('\n');
     enhAlgorithmString = lines[0];
     image = Image(lines.sublist(2));
   }
+
+  void enhanceImage() {
+    image.enhance( enhAlgorithmString);
+  }
+
 }
 
-class EnhancementAlgorithm {
-
-}
 
 
 class Image {
@@ -81,6 +83,50 @@ class Image {
     for ( String line in imageLines) {
       debugPrint( line);
     }
+  }
+
+  void enhance(String enhAlgorithmString) {
+    String pixels = '';
+    for ( int row = 0 ; row < imageLines.length; row++) {
+      for ( int col = 0 ; col < imageLines[row].length; col++ ) {
+        pixels += getPixelsAbove(row, col);
+        pixels += getPixelTriplet(row, col);
+        pixels += getPixelsBelow(row, col);
+      }
+    }
+  }
+
+  String getPixelsAbove(int row, int col) {
+    if (row > 0 ) {
+      return getPixelTriplet(row - 1, col );
+    } else {
+      return '...';
+    }
+  }
+
+  String getPixelsBelow(int row, int col) {
+    if (row < imageLines.length-1 ) {
+      return getPixelTriplet(row + 1, col );
+    } else {
+      return '...';
+    }
+  }
+
+  String getPixelTriplet(int row, int col) {
+    String triplet = '';
+    if ( col == 0 ) {
+      triplet = '.' ;
+    } else {
+      triplet = imageLines[row][col-1];
+    }
+    triplet += imageLines[row][col];
+    if ( col < imageLines.length-1) {
+      String s =
+      triplet += imageLines[row][col+1];
+    } else {
+      triplet += '.';
+    }
+    return triplet;
   }
 
 }
