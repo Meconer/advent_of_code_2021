@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 class Day19 extends StatelessWidget {
-  const Day19({Key? key}) : super(key: key);
+  Day19({Key? key}) : super(key: key);
   static const String routeName = 'day19';
   static const String dayTitle = 'Day 19: Beacon Scanner';
 
@@ -27,24 +27,54 @@ class Day19 extends StatelessWidget {
     );
   }
 
+  late Ocean ocean;
   int doPart1() {
-    final lines = getInput(example: true);
-    Ocean ocean = Ocean.fromInput(lines);
-    int errorSum = 0;
-    return errorSum;
+    final lines = getInput(example: false);
+    ocean = Ocean.fromInput(lines);
+    final refScanner = ocean.scanners[0];
+    int noOfScanners = ocean.scanners.length;
+    int noOfLocatedScanners = 1;
+    refScanner.actualLocation = Vector(0, 0, 0);
+    while (ocean.isNotTotallyScanned()) {
+      for (int i = 1; i < noOfScanners; i++) {
+        Scanner scanner = ocean.scanners[i];
+        debugPrint('Checking scanner $i');
+        if (scanner.actualLocation == null) {
+          final locationOfScanner = refScanner.findCommonLocation(scanner);
+          if (locationOfScanner != null) {
+            noOfLocatedScanners++;
+            debugPrint('Found scanner no $i');
+            debugPrint('Found $noOfLocatedScanners of $noOfScanners');
+            scanner.actualLocation = locationOfScanner.location;
+            scanner.reOrient(locationOfScanner.orientation);
+            refScanner.addBeaconsFromOtherScanner(scanner);
+          }
+        }
+      }
+    }
+    return refScanner.beacons.length;
   }
 
   int doPart2() {
-    final lines = getInput(example: true);
-    int errorSum = 0;
-    return errorSum;
+    return getLargestManhattanDistance(ocean);
   }
-
 
   List<String> getInput({required bool example}) {
     String input = example ? exampleInputText : inputText;
     List<String> lines = input.split('\n');
     return lines;
+  }
+
+  int getLargestManhattanDistance(Ocean ocean) {
+    int largestManhattanDistance = 0;
+    for (int i = 0; i < ocean.scanners.length - 1; i++) {
+      for (int j = i + 1; j < ocean.scanners.length; j++) {
+        int manhattanDistance = ocean.scanners[i].actualLocation!
+            .getManhattanDistance(ocean.scanners[j].actualLocation!);
+        if ( manhattanDistance > largestManhattanDistance ) largestManhattanDistance = manhattanDistance;
+      }
+    }
+    return largestManhattanDistance;
   }
 }
 
@@ -63,7 +93,6 @@ class Vector {
     return vec;
   }
 
-
   Vector distance(Vector otherVector) {
     int dx = x - otherVector.x;
     int dy = y - otherVector.y;
@@ -71,16 +100,26 @@ class Vector {
     return Vector(dx, dy, dz);
   }
 
-  rotate( Matrix rotationMatrix) {
-
+  rotate(Matrix rotationMatrix) {
     final newCoords = rotationMatrix.multiply(this);
     x = newCoords.x;
     y = newCoords.y;
     z = newCoords.z;
   }
 
-  bool isEqual( Vector otherVector) {
-    return ( x == otherVector.x && y == otherVector.y && z == otherVector.z);
+  bool isEqual(Vector otherVector) {
+    return (x == otherVector.x && y == otherVector.y && z == otherVector.z);
+  }
+
+  Vector move(Vector moveVector) {
+    return Vector(x + moveVector.x, y + moveVector.y, z + moveVector.z);
+  }
+
+  int getManhattanDistance(Vector actualLocation) {
+    int manhattanDistance = (actualLocation.x - x).abs() +
+        (actualLocation.y - y).abs() +
+        (actualLocation.z - z).abs();
+    return manhattanDistance;
   }
 }
 
@@ -90,18 +129,17 @@ class LocationCounter {
   int addLocation(Vector locationToAdd) {
     bool found = false;
     int counterToReturn = 0;
-    for ( final locationItem in locations) {
+    for (final locationItem in locations) {
       if (locationItem.location.isEqual(locationToAdd)) {
         locationItem.counter++;
         found = true;
-        debugPrint('Found location, counter is ${locationItem.counter}');
         counterToReturn = locationItem.counter;
         break;
       }
     }
     if (!found) {
       locations.add(LocationCounterItem(locationToAdd));
-      counterToReturn  = 1;
+      counterToReturn = 1;
     }
     return counterToReturn;
   }
@@ -121,36 +159,38 @@ class Matrix {
   Matrix(this.vectorList);
 
   Matrix.fromValues(int v00, int v01, int v02, int v10, int v11, int v12,
-      int v20, int v21, int v22,{ String? name}) {
-
-    Vector vec0 = Vector(v00, v01, v02);
-    Vector vec1 = Vector(v10, v11, v12);
-    Vector vec2 = Vector(v20, v21, v22);
-    vectorList =
-    [
-      [v00,v01,v02],
-      [v10,v11,v12],
-      [v20,v21,v22],
+      int v20, int v21, int v22,
+      {String? name}) {
+    vectorList = [
+      [v00, v01, v02],
+      [v10, v11, v12],
+      [v20, v21, v22],
     ];
-    if ( name != null ) this.name = name;
+    if (name != null) this.name = name;
   }
 
   Vector multiply(Vector vector) {
-    int x = vectorList[0][0] * vector.x + vectorList[0][1] * vector.y + vectorList[0][2] * vector.z;
-    int y = vectorList[1][0] * vector.x + vectorList[1][1] * vector.y + vectorList[1][2] * vector.z;
-    int z = vectorList[2][0] * vector.x + vectorList[2][1] * vector.y + vectorList[2][2] * vector.z;
+    int x = vectorList[0][0] * vector.x +
+        vectorList[0][1] * vector.y +
+        vectorList[0][2] * vector.z;
+    int y = vectorList[1][0] * vector.x +
+        vectorList[1][1] * vector.y +
+        vectorList[1][2] * vector.z;
+    int z = vectorList[2][0] * vector.x +
+        vectorList[2][1] * vector.y +
+        vectorList[2][2] * vector.z;
     return Vector(x, y, z);
   }
 
   matrixPrint() {
-    if ( name != null ) {
+    if (name != null) {
       debugPrint(name);
     }
-    for ( int i = 0 ; i < 3 ; i++) {
-      debugPrint( '| ${vectorList[i][0]}, ${vectorList[i][1]}, ${vectorList[i][2]} |' );
+    for (int i = 0; i < 3; i++) {
+      debugPrint(
+          '| ${vectorList[i][0]}, ${vectorList[i][1]}, ${vectorList[i][2]} |');
     }
   }
-
 }
 
 class Beacon {
@@ -163,12 +203,11 @@ class Beacon {
     int dz = otherBeacon.position.z - position.z;
     return Vector(dx, dy, dz);
   }
-
 }
 
 // Rotation index is 0 to 23 which cover all possible rotations
 List<Matrix> rotations = [
-  Matrix.fromValues(1, 0, 0, 0, 1, 0, 0, 0, 1, name: '0'),   // 0 No rotation
+  Matrix.fromValues(1, 0, 0, 0, 1, 0, 0, 0, 1, name: '0'), // 0 No rotation
   Matrix.fromValues(0, -1, 0, 1, 0, 0, 0, 0, 1, name: '90 z'),
   Matrix.fromValues(-1, 0, 0, 0, -1, 0, 0, 0, 1, name: '180 z'),
   Matrix.fromValues(0, 1, 0, -1, 0, 0, 0, 0, 1, name: '270 z'),
@@ -200,7 +239,6 @@ List<Matrix> rotations = [
   Matrix.fromValues(0, 1, 0, 0, 0, 1, 1, 0, 0, name: '270 y : 270 z'),
 ];
 
-
 class Scanner {
   late List<Beacon> beacons;
 
@@ -210,7 +248,6 @@ class Scanner {
     beacons = [];
     for (String line in lineList) {
       Vector position = Vector.fromStr(line);
-      Vector orientation = Vector(0, 0, 0);
       beacons.add(Beacon(position));
     }
   }
@@ -228,15 +265,16 @@ class Scanner {
 
           // If the two beacons to be compared should be common for both scanners then the location of
           // the scannerToTest would be at this location.
-          final maybeScannerToTestLocation = refBeacon.position.distance(
-              rotatedPosition);
-          int countOnThisLocation = locationCounter.addLocation(maybeScannerToTestLocation);
-          if ( countOnThisLocation >= 12 ) {
+          final maybeScannerToTestLocation =
+              refBeacon.position.distance(rotatedPosition);
+          int countOnThisLocation =
+              locationCounter.addLocation(maybeScannerToTestLocation);
+          if (countOnThisLocation >= 12) {
             commonLocation = maybeScannerToTestLocation;
-            actualLocation = maybeScannerToTestLocation;
-            debugPrint(' Dist  : ${commonLocation.x}, ${commonLocation.y}, ${commonLocation.z}');
-            rotation.matrixPrint();
-            LocationAndOrientation locationAndOrientation = LocationAndOrientation(commonLocation, rotation);
+            // debugPrint(' Dist  : ${commonLocation.x}, ${commonLocation.y}, ${commonLocation.z}');
+            // rotation.matrixPrint();
+            LocationAndOrientation locationAndOrientation =
+                LocationAndOrientation(commonLocation, rotation);
             return locationAndOrientation;
           }
         }
@@ -250,13 +288,29 @@ class Scanner {
   }
 
   void reOrient(Matrix rotation) {
-    for ( final beacon in beacons ) {
+    for (final beacon in beacons) {
       beacon.position = rotation.multiply(beacon.position);
     }
   }
 
   void addBeaconsFromOtherScanner(Scanner scanner) {
-    throw UnimplementedError();
+    for (final beacon in scanner.beacons) {
+      // Calculate the new beacons position in the current coordinate system
+      Vector newPos = beacon.position.move(scanner.actualLocation!);
+      Beacon beaconToAdd = Beacon(newPos);
+      if (!hasBeacon(beaconToAdd)) {
+        beacons.add(beaconToAdd);
+      }
+    }
+  }
+
+  bool hasBeacon(Beacon beaconToCheck) {
+    for (final beacon in beacons) {
+      if (beacon.position.isEqual(beaconToCheck.position)) {
+        return true;
+      }
+    }
+    return false;
   }
 }
 
@@ -290,8 +344,8 @@ class Ocean {
   }
 
   bool isNotTotallyScanned() {
-    for ( final scanner in scanners) {
-      if ( scanner.actualLocation == null) return true;
+    for (final scanner in scanners) {
+      if (scanner.actualLocation == null) return true;
     }
     return false;
   }

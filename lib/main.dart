@@ -55,7 +55,7 @@ class MyApp extends StatelessWidget {
         Day16.routeName: (context) => Day16(),
         Day17.routeName: (context) => const Day17(),
         Day18.routeName: (context) => const Day18(),
-        Day19.routeName: (context) => const Day19(),
+        Day19.routeName: (context) => Day19(),
       },
     );
   }

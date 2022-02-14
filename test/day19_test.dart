@@ -61,9 +61,6 @@ void main() {
 
     var scannerToTestLocation = refScanner.findCommonLocation(scannerToTest);
     expect(scannerToTestLocation, isNotNull);
-    debugPrint('scannerToTestLocation.location ${scannerToTestLocation!.location.x}' );
-    debugPrint('scannerToTestLocation.location ${scannerToTestLocation.location.y}' );
-    debugPrint('scannerToTestLocation.location ${scannerToTestLocation.location.z}' );
 
     final secondScannerToTest = ocean.scanners[2];
     scannerToTestLocation = refScanner.findCommonLocation(secondScannerToTest);
@@ -86,6 +83,7 @@ void main() {
         }
       }
     }
+    expect(refScanner.beacons.length, 79);
 
   });
 
