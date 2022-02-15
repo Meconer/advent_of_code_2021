@@ -12,6 +12,7 @@ import 'day17.dart';
 import 'day18.dart';
 import 'day19.dart';
 import 'day2.dart';
+import 'day20.dart';
 import 'day3.dart';
 import 'day4.dart';
 import 'day5.dart';
@@ -56,6 +57,7 @@ class MyApp extends StatelessWidget {
         Day17.routeName: (context) => const Day17(),
         Day18.routeName: (context) => const Day18(),
         Day19.routeName: (context) => Day19(),
+        Day20.routeName: (context) => const Day20(),
       },
     );
   }
@@ -152,6 +154,10 @@ class MyHomePage extends StatelessWidget {
               const DayButton(
                 titleText: Day19.dayTitle,
                 routeName: Day19.routeName,
+              ),
+              const DayButton(
+                titleText: Day20.dayTitle,
+                routeName: Day20.routeName,
               ),
             ],
           ),

@@ -2,7 +2,8 @@ import 'package:advent_of_code/day20.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
-  String testInput = '''..#.#..#####.#.#.#.###.##.....###.##.#..###.####..#####..#....#..#..##..###..######.###...####..#..#####..##..#.#####...##.#.#..#.##..#.#......#.###.######.###.####...#.##.##..#..#..#####.....#.#....###..#.##......#.....#..#..#..##..#...##.######.####.####.#.#...#.......#..#.#.#...####.##.#......#..#...##.#.##..#...##.#.##..###.#......#.#.......#.#.#.####.###.##...#.....####.#..#..#.##.#....##..#.####....##...##..#...#......#.#.......#.......##..####..#...#.#.#...##..#.#..###..#####........#..####......#..#
+  String testInput =
+      '''..#.#..#####.#.#.#.###.##.....###.##.#..###.####..#####..#....#..#..##..###..######.###...####..#..#####..##..#.#####...##.#.#..#.##..#.#......#.###.######.###.####...#.##.##..#..#..#####.....#.#....###..#.##......#.....#..#..#..##..#...##.######.####.####.#.#...#.......#..#.#.#...####.##.#......#..#...##.#.##..#...##.#.##..###.#......#.#.......#.#.#.####.###.##...#.....####.#..#..#.##.#....##..#.####....##...##..#...#......#.#.......#.......##..####..#...#.#.#...##..#.#..###..#####........#..####......#..#
 
 #..#.
 #....
@@ -20,9 +21,28 @@ void main() {
     trench.image.print();
   });
 
-  test('Decode algorithm', () {
+  test('Enhance pixel', () {
+    String pixels = '...#...#.';
     final trenchMap = TrenchMap.fromInputString(testInput);
-    trenchMap.enhanceImage();
+
+    final result =
+        TrenchImage.enhancePixel(pixels, trenchMap.enhAlgorithmString);
+    expect(result, '#');
   });
 
+  test('Pixel count', () {
+    final trenchMap = TrenchMap.fromInputString(testInput);
+    int count = trenchMap.image.countBrightPixels();
+    expect(count, 10);
+  });
+
+  test('Enhance image', () {
+    final trenchMap = TrenchMap.fromInputString(testInput);
+    trenchMap.enhanceImage();
+    trenchMap.enhanceImage();
+    trenchMap.image.print();
+    int count = trenchMap.image.countBrightPixels();
+    expect(count, 35);
+
+  });
 }

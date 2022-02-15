@@ -19,8 +19,8 @@ class Day20 extends StatelessWidget {
             const SizedBox(
               height: 200,
             ),
-            SelectableText('Svar dag 19 del 1: $resultPart1'),
-            SelectableText('Svar dag 19 del 2 : $resultPart2'),
+            SelectableText('Svar dag 20 del 1: $resultPart1'),
+            SelectableText('Svar dag 20 del 2 : $resultPart2'),
           ],
         ),
       ),
@@ -28,17 +28,28 @@ class Day20 extends StatelessWidget {
   }
 
   int doPart1() {
-    final dayInput = getInput(example: true);
-    return 0;
+    final trenchMap = getInput(example: false);
+    //trenchMap.image.print();
+    trenchMap.enhanceImage();
+    trenchMap.enhanceImage();
+    //trenchMap.image.print();
+    int count = trenchMap.image.countBrightPixels();
+    return count;
   }
 
   int doPart2() {
-    return 0;
+    final trenchMap = getInput(example: false);
+    trenchMap.image.print();
+    for (var i = 0; i < 50; i++) {
+      trenchMap.enhanceImage();
+    }
+    trenchMap.image.print();
+    int count = trenchMap.image.countBrightPixels();
+    return count;
   }
 
   TrenchMap getInput({required bool example}) {
     String input = example ? exampleInputText : inputText;
-    List<String> lines = input.split('\n');
     TrenchMap trenchMap = TrenchMap.fromInputString(input);
     return trenchMap;
   }
@@ -48,13 +59,13 @@ class Day20 extends StatelessWidget {
 
 
 class TrenchMap {
-  late Image image;
+  late TrenchImage image;
   late String enhAlgorithmString;
 
   TrenchMap.fromInputString(String input) {
     final lines = input.split('\n');
     enhAlgorithmString = lines[0];
-    image = Image(lines.sublist(2));
+    image = TrenchImage(lines.sublist(2));
   }
 
   void enhanceImage() {
@@ -65,34 +76,47 @@ class TrenchMap {
 
 
 
-class Image {
+class TrenchImage {
   List<String> imageLines;
+  String infinitePixel = '.';
 
-  Image(this.imageLines);
+  TrenchImage(this.imageLines);
 
   expand() {
     int lineLength = imageLines[0].length;
-    String linesToAdd = List.filled(lineLength + 2, '.').join();
+    String linesToAdd = List.filled(lineLength + 2, infinitePixel).join();
     for ( int lineNo = 0; lineNo < imageLines.length; lineNo++) {
-      imageLines[lineNo] = '.' + imageLines[lineNo] + '.';
+      imageLines[lineNo] = infinitePixel + imageLines[lineNo] + infinitePixel;
     }
     imageLines = [...[linesToAdd], ... imageLines, ...[linesToAdd]];
   }
 
   print() {
+    debugPrint('Size ${imageLines.length} rows and ${imageLines[0].length}');
     for ( String line in imageLines) {
       debugPrint( line);
     }
   }
 
   void enhance(String enhAlgorithmString) {
-    String pixels = '';
-    for ( int row = 0 ; row < imageLines.length; row++) {
+    expand();
+    List<String> newImage = [];
+    for ( int row = 0 ; row < imageLines.length ; row++) {
+      String imageLine = '';
       for ( int col = 0 ; col < imageLines[row].length; col++ ) {
-        pixels += getPixelsAbove(row, col);
+        String pixels = getPixelsAbove(row, col);
         pixels += getPixelTriplet(row, col);
         pixels += getPixelsBelow(row, col);
+        String newPixel = enhancePixel(pixels, enhAlgorithmString);
+        imageLine += newPixel;
       }
+      newImage.add(imageLine);
+    }
+    imageLines = newImage;
+    if ( infinitePixel == '.') {
+      infinitePixel = enhAlgorithmString[0];
+    } else {
+      infinitePixel = enhAlgorithmString[511];
     }
   }
 
@@ -100,7 +124,7 @@ class Image {
     if (row > 0 ) {
       return getPixelTriplet(row - 1, col );
     } else {
-      return '...';
+      return infinitePixel + infinitePixel + infinitePixel;
     }
   }
 
@@ -108,25 +132,42 @@ class Image {
     if (row < imageLines.length-1 ) {
       return getPixelTriplet(row + 1, col );
     } else {
-      return '...';
+      return infinitePixel + infinitePixel + infinitePixel;
     }
   }
 
   String getPixelTriplet(int row, int col) {
     String triplet = '';
     if ( col == 0 ) {
-      triplet = '.' ;
+      triplet = infinitePixel ;
     } else {
       triplet = imageLines[row][col-1];
     }
     triplet += imageLines[row][col];
     if ( col < imageLines.length-1) {
-      String s =
       triplet += imageLines[row][col+1];
     } else {
-      triplet += '.';
+      triplet += infinitePixel;
     }
     return triplet;
+  }
+
+  int countBrightPixels() {
+    int count = 0 ;
+    for ( final line in imageLines ) {
+      for ( String char in line.split('')) {
+        if ( char == '#') count++;
+      }
+    }
+    return count;
+  }
+
+  static String enhancePixel(String pixels, String enhAlgorithmString) {
+    pixels = pixels.replaceAll('.', '0');
+    pixels = pixels.replaceAll('#', '1');
+    int value = int.parse(pixels, radix: 2);
+    String returnPixel = enhAlgorithmString.substring(value,value+1);
+    return returnPixel;
   }
 
 }
@@ -240,5 +281,4 @@ String inputText = '''#.#.##.#.#....#.#.#......###.#....####.#...###..#...#.#.##
 #.##.##.###.....####.###.#.#...#####..#.##.###.##.#....##.##.###.#...#.###..#..##.####.#...#...##...
 .....#####.........#..#..#...##....#....###.#.###.#######..##....###.##.........###.#.##..##...###..
 ..###..####.##.#.#..##..#..#.#.##.####...##..#..###...#......#..######.####....###.#.###.#.##.##.#..
-.####.#####.##.#.####......###....#.#......#.#.##...##...#..#.#..##...#..##.#...##..###.###.##.##.##
-''';
+.####.#####.##.#.####......###....#.#......#.#.##...##...#..#.#..##...#..##.#...##..###.###.##.##.##''';
