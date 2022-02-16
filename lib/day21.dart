@@ -33,12 +33,18 @@ class Day21 extends StatelessWidget {
   }
 
   int doPart2() {
-    return 0;
+    final game = getInputPart2(example: true);
+    return Move.gameCount;
   }
 
   GamePart1 getInput({required bool example}) {
     String input = example ? exampleInputText : inputText;
     GamePart1 game = GamePart1.fromInputString(input);
+    return game;
+  }
+  GamePart2 getInputPart2({required bool example}) {
+    String input = example ? exampleInputText : inputText;
+    GamePart2 game = GamePart2.fromInputString(input);
     return game;
   }
 }
@@ -56,10 +62,16 @@ class GamePart2 {
     List<String> lines = input.split('\n');
     userPos1 = int.parse(lines[0].substring(lines[0].length - 2));
     userPos2 = int.parse(lines[1].substring(lines[1].length - 2));
-    buildRollList();
+    buildRollMap();
+    Move move = Move();
+    move.userNo = 0;  // User 0 starts
+    move.userPos[0] = userPos1;
+    move.userPos[1] = userPos2;
+    move.doMove(rollMap,0);
+    debugPrint('Games : ${Move.gameCount}');
   }
 
-  buildRollList() {
+  buildRollMap() {
     for ( int roll1 = 1; roll1 <= 3; roll1++ ) {
       for ( int roll2 = 1; roll2 <= 3; roll2++ ) {
         for ( int roll3 = 1; roll3 <= 3; roll3++ ) {
@@ -79,17 +91,46 @@ class GamePart2 {
     });
     debugPrint('total rolls $diffRolls');
   }
-
-  void buildResultTree() {
-    List<Move> moveList = [];
-    rollMap.forEach((key, value) {
-      moveList.add(Move());
-    });
-  }
 }
 
 class Move {
-  late List<Move> moveList;
+  static int gameCount = 0 ;
+  List<Move> moveList = [];
+  int userNo = 0;
+  int count = 0;
+  bool userWon = false;
+  List<int> userPoint = [0,0];
+  List<int> userPos =[0,0];
+
+  List<Move> doMove(Map<int,int> rollMap, int userNo) {
+    rollMap.forEach((diceValue, count) {
+    //for ( int diceValue in rollMap.keys) {
+      Move move = Move();
+      move.count = count;
+      gameCount += count;
+      int otherUser =  userNo == 0 ? 1 : 0;
+      int newPos = getNewPos(userPos[userNo], diceValue);
+      move.userPos[userNo] = newPos;
+      move.userPos[otherUser] = userPos[otherUser];
+      move.userPoint[userNo] = userPoint[userNo] + newPos;
+      move.userPoint[otherUser] = userPoint[otherUser];
+      if ( move.userPoint[userNo] >= 21) {
+        move.userWon = true;
+      } else {
+        move.doMove(rollMap, otherUser);
+      }
+      moveList.add(move);
+    });
+    return moveList;
+  }
+
+  int getNewPos(int userPos, int diceValue) {
+    userPos = userPos + diceValue;
+    while ( userPos > 10) {
+      userPos -= 10;
+    }
+    return userPos;
+  }
 }
 class GamePart1 {
   late int userPos1;

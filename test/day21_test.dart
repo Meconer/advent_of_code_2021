@@ -32,9 +32,9 @@ Player 2 starting position: 8''';
     expect(testNum*10000, 4443560927763150000);
   });
 
-  test('Game part 2', () {
+  test('Play game part 2', () {
     final game = GamePart2.fromInputString(testInput);
-    game.buildResultTree();
+
   });
 
 
