@@ -34,6 +34,7 @@ Player 2 starting position: 8''';
 
   test('Play game part 2', () {
     final game = GamePart2.fromInputString(testInput);
+    expect(game.play(), 444356092776315);
 
   });
 
