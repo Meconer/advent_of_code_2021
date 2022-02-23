@@ -1,5 +1,6 @@
-import 'dart:math';
+import 'dart:collection';
 
+import 'package:advent_of_code/day8.dart';
 import 'package:flutter/material.dart';
 
 class Day22 extends StatelessWidget {
@@ -37,7 +38,7 @@ class Day22 extends StatelessWidget {
 
       cubes.handleCommand(command);
     }
-    return cubes.getVolume();
+    return cubes.cubeList.length;
   }
 
   int doPart2() {
@@ -49,7 +50,6 @@ class Day22 extends StatelessWidget {
     return input.split('\n');
   }
 }
-
 
 class CubeSpace {
   List<Cube> cubeList = [];
@@ -63,47 +63,198 @@ class CubeSpace {
     }
   }
 
+  // Splits a cube by another cube
+  static List<Cube> split(Cube cubeToSplit, Cube cubeForSplit) {
+    if (!cubeToSplit.interSect(cubeForSplit)) {
+      return [cubeToSplit];
+    }
+
+    // Split in X axis?
+    List<int> splitAtX = [];
+    if (cubeForSplit.xMin > cubeToSplit.xMin &&
+        cubeForSplit.xMin < cubeToSplit.xMax) {
+      splitAtX.add(cubeForSplit.xMin);
+    }
+    if (cubeForSplit.xMax > cubeToSplit.xMin &&
+        cubeForSplit.xMax < cubeToSplit.xMax) {
+      splitAtX.add(cubeForSplit.xMax + 1);
+    }
+    List<Cube> xSplitCubes = [];
+    if (splitAtX.isNotEmpty) {
+      xSplitCubes = splitInX(cubeToSplit, splitAtX);
+    } else {
+      xSplitCubes = [cubeToSplit.copy()];
+    }
+
+    // Split in Y?
+    List<int> splitAtY = [];
+    if (cubeForSplit.yMin > cubeToSplit.yMin &&
+        cubeForSplit.yMin < cubeToSplit.yMax) {
+      splitAtY.add(cubeForSplit.yMin);
+    }
+    if (cubeForSplit.yMax > cubeToSplit.yMin &&
+        cubeForSplit.yMax < cubeToSplit.yMax) {
+      splitAtY.add(cubeForSplit.yMax + 1);
+    }
+    List<Cube> ySplitCubes = [];
+    if (splitAtY.isNotEmpty) {
+      for (Cube cube in xSplitCubes) {
+        ySplitCubes.addAll(splitInY(cube, splitAtY));
+      }
+    } else {
+      ySplitCubes = xSplitCubes;
+    }
+
+    // Split in Y?
+    List<int> splitAtZ = [];
+    if (cubeForSplit.zMin > cubeToSplit.zMin &&
+        cubeForSplit.zMin < cubeToSplit.zMax) {
+      splitAtZ.add(cubeForSplit.zMin);
+    }
+    if (cubeForSplit.zMax > cubeToSplit.zMin &&
+        cubeForSplit.zMax < cubeToSplit.zMax) {
+      splitAtZ.add(cubeForSplit.zMax + 1);
+    }
+    List<Cube> zSplitCubes = [];
+    if (splitAtZ.isNotEmpty) {
+      for (Cube cube in ySplitCubes) {
+        zSplitCubes.addAll(splitInZ(cube, splitAtZ));
+      }
+    } else {
+      zSplitCubes = ySplitCubes;
+    }
+    return zSplitCubes;
+  }
+
+  static List<Cube> splitInX(Cube cube, List<int> splitAtX) {
+    // Split in X plane
+    List<Cube> result = [];
+    if (splitAtX.isEmpty) {
+      result.add(cube);
+    }
+    if (splitAtX.length == 1) {
+      result.add(Cube(cube.positive, cube.xMin, splitAtX[0] - 1, cube.yMin,
+          cube.yMax, cube.zMin, cube.zMax));
+      result.add(Cube(cube.positive, splitAtX[0], cube.xMax, cube.yMin,
+          cube.yMax, cube.zMin, cube.zMax));
+    }
+    if (splitAtX.length == 2) {
+      result.add(Cube(cube.positive, cube.xMin, splitAtX[0] - 1, cube.yMin,
+          cube.yMax, cube.zMin, cube.zMax));
+      result.add(Cube(cube.positive, splitAtX[0], splitAtX[1] - 1, cube.yMin,
+          cube.yMax, cube.zMin, cube.zMax));
+      result.add(Cube(cube.positive, splitAtX[1], cube.xMax, cube.yMin,
+          cube.yMax, cube.zMin, cube.zMax));
+    }
+    return result;
+  }
+
+  static List<Cube> splitInY(Cube cube, List<int> splitAtY) {
+    // Split in Y plane
+    List<Cube> result = [];
+    if (splitAtY.isEmpty) {
+      result.add(cube);
+    }
+    if (splitAtY.length == 1) {
+      result.add(Cube(cube.positive, cube.xMin, cube.xMax, cube.yMin,
+          splitAtY[0] - 1, cube.zMin, cube.zMax));
+      result.add(Cube(cube.positive, cube.xMin, cube.xMax, splitAtY[0],
+          cube.yMax, cube.zMin, cube.zMax));
+    }
+    if (splitAtY.length == 2) {
+      result.add(Cube(cube.positive, cube.xMin, cube.xMax, cube.yMin,
+          splitAtY[0] - 1, cube.zMin, cube.zMax));
+      result.add(Cube(cube.positive, cube.xMin, cube.xMax, splitAtY[0],
+          splitAtY[1] - 1, cube.zMin, cube.zMax));
+      result.add(Cube(cube.positive, cube.xMin, cube.xMax, splitAtY[1],
+          cube.yMax, cube.zMin, cube.zMax));
+    }
+    return result;
+  }
+
+  static List<Cube> splitInZ(Cube cube, List<int> splitAtZ) {
+    // Split in Z plane
+    List<Cube> result = [];
+    if (splitAtZ.isEmpty) {
+      result.add(cube);
+    }
+    if (splitAtZ.length == 1) {
+      result.add(Cube(cube.positive, cube.xMin, cube.xMax, cube.yMin, cube.yMax,
+          cube.zMin, splitAtZ[0] - 1));
+      result.add(Cube(cube.positive, cube.xMin, cube.xMax, cube.yMin, cube.yMax,
+          splitAtZ[0], cube.zMax));
+    }
+    if (splitAtZ.length == 2) {
+      result.add(Cube(cube.positive, cube.xMin, cube.xMax, cube.yMin, cube.yMax,
+          cube.zMin, splitAtZ[0] - 1));
+      result.add(Cube(cube.positive, cube.xMin, cube.xMax, cube.yMin, cube.yMax,
+          splitAtZ[0], splitAtZ[1] - 1));
+      result.add(Cube(cube.positive, cube.xMin, cube.xMax, cube.yMin, cube.yMax,
+          splitAtZ[1], cube.zMax));
+    }
+    return result;
+  }
+
+
   int getVolume() {
     int count = 0;
     for (Cube cube in cubeList) {
-      if (cube.positive) {
-        count += cube.getVolume();
-      } else {
-        count -= cube.getVolume();
-      }
+      count += cube.getVolume();
     }
     return count;
   }
 
   void addPositiveCube(Cube cubeToAdd) {
-    // Check if the new cube intersects with an existing cube. If it does
-    // add a negative cube from the intersection. Then we get the correct
-    // volume in the end.
-    List<Cube> newCubeList = [];
+    if (cubeList.isEmpty) {
+      cubeList.add(cubeToAdd);
+      return;
+    }
+
+    // Split the new cube with all the existing. Add all the parts
+    // Don't worry about duplicates. We deal with that later
+    List<Cube> splitCubes = [cubeToAdd];
     for (Cube cube in cubeList) {
-      newCubeList.add(cube);
       if (cube.interSect(cubeToAdd)) {
-        newCubeList.add(cube.getIntersection(cubeToAdd));
+        splitCubes.addAll(CubeSpace.split(cubeToAdd, cube));
       }
     }
-    newCubeList.add(cubeToAdd);
-    cubeList = newCubeList;
+
+    // Add the parts that don't intersect with the existing ones.
+    List<Cube> splitCubesToAdd = [];
+    for (Cube maybeAddCube in splitCubes) {
+      bool okToAdd = true;
+      for ( Cube cube in cubeList) {
+        if ( cube.interSect(maybeAddCube) ) {
+          okToAdd = false;
+          break;
+        }
+      }
+      if ( okToAdd ) splitCubesToAdd.add(maybeAddCube);
+    }
+    cubeList.addAll(splitCubesToAdd);
   }
 
 
   void removeNegativeCube(Cube cubeToRemove) {
-    // Check if the new cube intersects with an existing cube. If it does
-    // add a negative cube from the intersection. Then we get the correct
-    // volume in the end.
-    List<Cube> newCubeList = [];
+    if (cubeList.isEmpty) return;
+
+
+    // Split all the existing cubes with the new.
+    List<Cube> splitCubes = [];
     for (Cube cube in cubeList) {
-      newCubeList.add(cube);
       if (cube.interSect(cubeToRemove)) {
-        newCubeList.add(cube.getIntersection(cubeToRemove));
-        
+        splitCubes.addAll(CubeSpace.split(cube, cubeToRemove));
+      } else {
+        splitCubes.add(cube);
       }
     }
-    cubeList = newCubeList;
+
+    // Collect all the split cubes that don't intersect with the negative
+    List<Cube> splitCubesToAdd = [];
+    for (Cube maybeAddCube in splitCubes) {
+        if ( !cubeToRemove.interSect(maybeAddCube) ) splitCubesToAdd.add(maybeAddCube);
+    }
+    cubeList = splitCubesToAdd;
   }
 }
 
@@ -200,16 +351,6 @@ class Cube {
 
   int getVolume() {
     return (xMax - xMin + 1) * (yMax - yMin + 1) * (zMax - zMin + 1);
-  }
-
-  Cube getIntersection(Cube cubeToAdd) {
-    int newXMin = max(xMin, cubeToAdd.xMin);
-    int newXMax = min(xMax, cubeToAdd.xMax);
-    int newYMin = max(yMin, cubeToAdd.yMin);
-    int newYMax = min(yMax, cubeToAdd.yMax);
-    int newZMin = max(zMin, cubeToAdd.zMin);
-    int newZMax = min(zMax, cubeToAdd.zMax);
-    return Cube(false, newXMin, newXMax, newYMin, newYMax, newZMin, newZMax);
   }
 }
 
