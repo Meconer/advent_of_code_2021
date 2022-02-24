@@ -51,7 +51,46 @@ class Board {
   static Board fromInput(List<String> lines) {
     Board board = Board();
     String homeUpper = lines[2].replaceAll('#', '');
-    board.homes[0][0] = Amphipod.fromChar(homeUpper[0]);
+    board.homes[0][0].occupant = Amphipod.fromChar(homeUpper[0]);
+    board.homes[1][0].occupant = Amphipod.fromChar(homeUpper[1]);
+    board.homes[2][0].occupant = Amphipod.fromChar(homeUpper[2]);
+    board.homes[3][0].occupant = Amphipod.fromChar(homeUpper[3]);
+    String homeLower = lines[2].replaceAll('#', '');
+    board.homes[0][1].occupant = Amphipod.fromChar(homeLower[0]);
+    board.homes[1][1].occupant = Amphipod.fromChar(homeLower[1]);
+    board.homes[2][1].occupant = Amphipod.fromChar(homeLower[2]);
+    board.homes[3][1].occupant = Amphipod.fromChar(homeLower[3]);
+    return board;
+  }
+
+  void print() {
+    debugPrint('#############');
+
+    // Print hallway
+    String s = '#';
+    for ( Pos pos in hallway) {
+      if ( pos.occupant != null ) {
+        s += pos.occupant!.name.substring(0,1);
+      } else {
+        s += '.';
+      }
+    }
+    s += '#';
+    debugPrint(s);
+
+    // Print upper and lower homes
+    String upper = '###';
+    String lower = '  #';
+    for ( int i = 0 ; i < 4 ; i++ ) {
+      Amphipod? amphipod = homes[i][0].occupant;
+      upper += Amphipod.getName(amphipod) + '#';
+      amphipod = homes[i][1].occupant;
+      lower += Amphipod.getName(amphipod) + '#';
+    }
+    upper += '##';
+    debugPrint(upper);
+    debugPrint(lower);
+    debugPrint('  #########');
   }
 }
 
@@ -59,7 +98,7 @@ class Pos {
   Amphipod? occupant;
 }
 
-abstract class Amphipod {
+class Amphipod {
   int stepEnergy = 0;
   int home = 0;
   String name = '';
@@ -70,6 +109,11 @@ abstract class Amphipod {
     if ( char == 'C') return Copper();
     if ( char == 'D') return Desert();
     return null;
+  }
+
+  static String getName(Amphipod? amphipod) {
+    if ( amphipod == null ) return '.';
+    return amphipod.name.substring(0,1);
   }
 }
 
