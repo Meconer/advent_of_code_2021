@@ -1,5 +1,4 @@
-import 'package:advent_of_code/day22Veryslow.dart';
-import 'package:flutter/foundation.dart';
+import 'package:advent_of_code/day22_very_slow.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {

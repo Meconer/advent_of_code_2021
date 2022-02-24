@@ -31,17 +31,20 @@ class Day22 extends StatelessWidget {
 
   int doPart1() {
     CubeSpace cubes = CubeSpace();
-    for (String line in getInput(example: true)) {
+    for (String line in getInput(example: false)) {
       Command command = Command.fromInputLine(line);
-      command.print();
-
-      cubes.handleCommand(command);
+      cubes.handleCommand(command, 50);
     }
     return cubes.getVolume();
   }
 
   int doPart2() {
-    return 0;
+    CubeSpace cubes = CubeSpace();
+    for (String line in getInput(example: false)) {
+      Command command = Command.fromInputLine(line);
+      cubes.handleCommand(command, 0);
+    }
+    return cubes.getVolume();
   }
 
   List<String> getInput({required bool example}) {
@@ -54,12 +57,10 @@ class Day22 extends StatelessWidget {
 class CubeSpace {
   List<Cube> cubeList = [];
 
-  void handleCommand(Command command) {
-    final newCube = Cube.fromCommand(command);
-    if (newCube.positive) {
-      addPositiveCube(newCube);
-    } else {
-      removeNegativeCube(newCube);
+  void handleCommand(Command command, int sizeLimit) {
+    if (command.isInSizeLimit(sizeLimit)) {
+      final newCube = Cube.fromCommand(command);
+      addCube(newCube);
     }
   }
 
@@ -75,34 +76,24 @@ class CubeSpace {
     return count;
   }
 
-  void addPositiveCube(Cube cubeToAdd) {
+  void addCube(Cube cubeToAdd) {
     // Check if the new cube intersects with an existing cube. If it does
-    // add a negative cube from the intersection. Then we get the correct
+    // add a cube from the intersection. According to mutual exclusion/inclusion
+    // principle we need to add a negative cube if the intersection is with
+    // a positive and a positive cube otherwise. Then we get the correct
     // volume in the end.
     List<Cube> newCubeList = [];
+    List<Cube> intersectionsToAdd = [];
+
     for (Cube cube in cubeList) {
       newCubeList.add(cube);
       if (cube.interSect(cubeToAdd)) {
-        newCubeList.add(cube.getIntersection(cubeToAdd));
+        intersectionsToAdd.add(cube.getIntersection(cubeToAdd, !cube.positive));
       }
     }
-    newCubeList.add(cubeToAdd);
-    cubeList = newCubeList;
-  }
-
-
-  void removeNegativeCube(Cube cubeToRemove) {
-    // Check if the new cube intersects with an existing cube. If it does
-    // add a negative cube from the intersection. Then we get the correct
-    // volume in the end.
-    List<Cube> newCubeList = [];
-    for (Cube cube in cubeList) {
-      newCubeList.add(cube);
-      if (cube.interSect(cubeToRemove)) {
-        newCubeList.add(cube.getIntersection(cubeToRemove));
-        
-      }
-    }
+    // Only add "on" cubes. The "off" is already handled by their intersections.
+    if ( cubeToAdd.positive) newCubeList.add(cubeToAdd);
+    newCubeList.addAll(intersectionsToAdd);
     cubeList = newCubeList;
   }
 }
@@ -129,6 +120,17 @@ class Command {
   print() {
     String s = turnOn ? 'On' : 'Off';
     debugPrint('$s : $xMin..$xMax, $yMin..$yMax, $zMin..$zMax');
+  }
+
+  bool isInSizeLimit(int sizeLimit) {
+    if ( sizeLimit == 0) return true;
+    if (xMin.abs() > sizeLimit ) return false;
+    if (xMax.abs() > sizeLimit ) return false;
+    if (yMin.abs() > sizeLimit ) return false;
+    if (yMax.abs() > sizeLimit ) return false;
+    if (zMin.abs() > sizeLimit ) return false;
+    if (zMax.abs() > sizeLimit ) return false;
+    return true;
   }
 }
 
@@ -202,14 +204,14 @@ class Cube {
     return (xMax - xMin + 1) * (yMax - yMin + 1) * (zMax - zMin + 1);
   }
 
-  Cube getIntersection(Cube cubeToAdd) {
+  Cube getIntersection(Cube cubeToAdd, bool pos) {
     int newXMin = max(xMin, cubeToAdd.xMin);
     int newXMax = min(xMax, cubeToAdd.xMax);
     int newYMin = max(yMin, cubeToAdd.yMin);
     int newYMax = min(yMax, cubeToAdd.yMax);
     int newZMin = max(zMin, cubeToAdd.zMin);
     int newZMax = min(zMax, cubeToAdd.zMax);
-    return Cube(false, newXMin, newXMax, newYMin, newYMax, newZMin, newZMax);
+    return Cube(pos, newXMin, newXMax, newYMin, newYMax, newZMin, newZMax);
   }
 }
 
