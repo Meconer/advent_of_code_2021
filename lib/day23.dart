@@ -96,6 +96,14 @@ class Board {
       final amphiPod = positions[pos].occupant;
       if ( amphiPod != null ) {
         int destRoomToMoveInto = getDestinationRoomPos(pos);
+        if ( destRoomToMoveInto != 0 ) {
+          // Amphipod home is available. Check if the path is blocked
+          int home = amphiPod.home;
+          int hallwayAboveHome = getHallwayAboveHomeNo(home);
+          if ( isFreePath(hallwayAboveHome, home)){
+            
+          }
+        }
       }
     }
     for (final pos in homeLowerPositions) {
@@ -182,6 +190,15 @@ class Board {
       // lower pos is empty so it is possible to move here.
       return homeLowerPos;
     }
+  }
+
+  int getHallwayAboveHomeNo(int home) {
+    return home*2 + 2;
+  }
+
+  bool isFreePath(int hallwayAboveHome, int home) {
+    int hallWayAboveHome = getHallwayAboveHomeNo(home);
+
   }
 }
 
