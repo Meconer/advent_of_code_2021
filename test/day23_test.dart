@@ -13,8 +13,11 @@ void main() {
     board.print();
     expect(board.getState(), '...........BCBDADCA');
 
-    for ( final home in board.homePositions) {
-        debugPrint( 'Is home : ${board.positions[home].occupant!.isInCorrectHome(home)}');
+    for ( final home in Board.homePositions) {
+      debugPrint( 'Is home : ${board.positions[home].occupant!.isInCorrectHome(home)}');
+    }
+    for ( final home in Board.homePositions) {
+      debugPrint( 'Home flag set : ${board.positions[home].occupant!.isAlreadyHome}');
     }
   });
 }

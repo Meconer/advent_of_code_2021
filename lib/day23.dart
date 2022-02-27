@@ -1,3 +1,4 @@
+import 'package:advent_of_code/day8.dart';
 import 'package:flutter/material.dart';
 
 class Day23 extends StatelessWidget {
@@ -72,27 +73,37 @@ class Board {
     board.positions[cHomeLower].occupant = Amphipod.fromName(homeLower[2]);
     board.positions[dHomeLower].occupant = Amphipod.fromName(homeLower[3]);
     for ( int pos in homeLowerPositions) {
-      if ( board)
+      if ( board.positions[pos].occupant!.isInCorrectHome(pos)) {
+        board.positions[pos].occupant!.isAlreadyHome = true;
+      }
+    }
+    for ( int pos in homeUpperPositions) {
+      if ( board.positions[pos].occupant!.isInCorrectHome(pos)
+        && board.positions[pos+4].occupant!.isAlreadyHome) {
+        board.positions[pos].occupant!.isAlreadyHome = true;
+      }
     }
     return board;
   }
 
   getPossibleMoves() {
     // Loop through all positions
-    for (final pos in homePositions) {
+    List<String> possibleMoves = []; // Possible states after move
+
+    // Check if any amphipods are in the hallway and can move into their
+    // destination rooms
+    for ( final pos in hallwayPositions) {
+      final amphiPod = positions[pos].occupant;
+      if ( amphiPod != null ) {
+        int destRoomToMoveInto = getDestinationRoomPos(pos);
+      }
+    }
+    for (final pos in homeLowerPositions) {
       final amphiPod = positions[pos].occupant;
       if (amphiPod != null) {
+        if ( ! amphiPod.isAlreadyHome ) {
+          // This home has an occupant. Can it move?
 
-        // This home has an occupant. Can it move?
-        // First check if it is in its own room
-        if (amphiPod.isInCorrectHome(pos)) {
-          // Correct home. Does it need to move to let a lower wrong one out?
-          if (isUpper(pos)) {
-            int lowerPos = getPosBelow(pos);
-            if ( positions[lowerPos].occupant!.isInCorrectHome(lowerPos)) {
-              amphiPod.
-            }
-          }
         }
       }
     }
@@ -146,6 +157,32 @@ class Board {
     debugPrint('  #########');
     debugPrint(getState());
   }
+
+  int getDestinationRoomPos(int pos) {
+    final amphipodToMove = positions[pos].occupant!;
+    // Check if this amphipods home room is empty or only has amphipods of correct type
+    final homeLowerPos = amphipodToMove.homePositions[0];
+    final occupantOfLowerPos = positions[homeLowerPos].occupant;
+    if ( occupantOfLowerPos != null) {
+      if (occupantOfLowerPos.name != amphipodToMove.name) {
+        // Lower pos has wrong type of amphipod. Not possible to move here
+        return 0;
+      }
+      // If we get here the lower pos has correct type amphipod so if the upper
+      // pos is empty we can move here
+      final homeUpperPos = amphipodToMove.homePositions[1];
+      final occupantOfUpperPos = positions[homeUpperPos].occupant;
+      if ( occupantOfUpperPos == null ) {
+        return homeUpperPos;
+      } else {
+        // not empty
+        return 0;
+      }
+    } else {
+      // lower pos is empty so it is possible to move here.
+      return homeLowerPos;
+    }
+  }
 }
 
 class Pos {
@@ -167,13 +204,9 @@ class Pos {
 abstract class Amphipod {
   int stepEnergy = 0;
   int home = 0;
+  late List<int> homePositions;
   String name = '.';
   bool isAlreadyHome = false;
-  List<int> amberHomePositions = [11,15];
-  List<int> bronzeHomePositions = [12,16];
-  List<int> copperHomePositions = [13,17];
-  List<int> desertHomePositions = [14,18];
-
   static Amphipod? fromName(String name) {
     if (name == 'A') return Amber();
     if (name == 'B') return Bronze();
@@ -195,53 +228,56 @@ abstract class Amphipod {
 class Amber extends Amphipod {
   Amber() {
     stepEnergy = 1;
+    homePositions = [11,15];
     home = 0;
     name = 'A';
   }
 
   @override
   bool isInCorrectHome(int posInBoard) {
-    return amberHomePositions.contains(posInBoard);
+    return homePositions.contains(posInBoard);
   }
 }
 
 class Bronze extends Amphipod {
   Bronze() {
     stepEnergy = 10;
-    home = 1;
+    homePositions = [12,16];
     home = 1;
     name = 'B';
   }
 
   @override
   bool isInCorrectHome(int posInBoard) {
-    return bronzeHomePositions.contains(posInBoard);
+    return homePositions.contains(posInBoard);
   }
 }
 
 class Copper extends Amphipod {
   Copper() {
     stepEnergy = 100;
+    homePositions = [13,17];
     home = 2;
     name = 'C';
   }
 
   @override
   bool isInCorrectHome(int posInBoard) {
-    return copperHomePositions.contains(posInBoard);
+    return homePositions.contains(posInBoard);
   }
 }
 
 class Desert extends Amphipod {
   Desert() {
     stepEnergy = 1000;
+    homePositions = [14,18];
     home = 3;
     name = 'D';
   }
 
   @override
   bool isInCorrectHome(int posInBoard) {
-    return desertHomePositions.contains(posInBoard);
+    return homePositions.contains(posInBoard);
   }
 }
 
