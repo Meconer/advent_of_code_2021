@@ -13,11 +13,17 @@ void main() {
     board.print();
     expect(board.getState(), '...........BCBDADCA');
 
-    for ( final home in Board.homePositions) {
-      debugPrint( 'Is home : ${board.positions[home].occupant!.isInCorrectHome(home)}');
-    }
-    for ( final home in Board.homePositions) {
-      debugPrint( 'Home flag set : ${board.positions[home].occupant!.isAlreadyHome}');
-    }
+  });
+
+  test('Possible moves', () {
+    String input = '''#############
+#.B.........#
+###A#.#C#D###
+  #A#C#D#B#
+  #########''';
+    Board board = Board.fromInput(input.split('\n'));
+    board.print();
+    final moves = board.getPossibleMoves();
+    expect(moves.length, 11);
   });
 }
