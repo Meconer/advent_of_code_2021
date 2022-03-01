@@ -32,10 +32,9 @@ class Day23 extends StatelessWidget {
   }
 
   int doPart1() {
-    final lines = getInput(example: true);
-    Board board = Board();
-
-    return 0;
+    final lines = getInput(example: false);
+    Board board = Board.fromInput(lines);
+    return board.findMovesToTargetWithLeastEnergy();
   }
 
   int doPart2() {
@@ -58,7 +57,10 @@ class Board {
   static List<int> homeLowerPositions =
       List.generate(4, (index) => (index + 15));
 
-  static List<int> permittedHallwayPositions = [0,1,3,5,7,9,10];
+  static List<int> permittedHallwayPositions = [1,3,5,7,9]; // We don't need to use pos 0 and 10.
+  // This shortens calculations significantly
+
+  String targetState = '...........ABCDABCD';
 
   static Board fromInput(List<String> lines) {
     Board board = Board();
@@ -220,10 +222,14 @@ class Board {
   MoveWithEnergy getMoveToHome(int pos, int destRoomToMoveInto, String amphiPodToMove) {
     // Calculate energy needed for this move
     int p1 = getHallwayAboveHomeNo(getHomeRoom(amphiPodToMove));
-    int hallwaySteps = (p1 - pos);
+    int hallwaySteps = (p1 - pos).abs();
     int homeSteps = 1;
     if ( isLower(destRoomToMoveInto)) homeSteps = 2;
     int energy = (hallwaySteps + homeSteps) * getStepEnergy(amphiPodToMove);
+
+    if ( energy < 0 ) {
+      debugPrint('!!!');
+    }
 
     // Make the new state
     List<String> newPositions = List.from(positions);
@@ -278,6 +284,9 @@ class Board {
     String amphiPodToMove = positions[startPos];
     int energy = (hallwaySteps + homeSteps) * getStepEnergy(amphiPodToMove);
 
+    if ( energy < 0 ) {
+      debugPrint('!!!');
+    }
     // Make the new state
     List<String> newPositions = List.from(positions);
     newPositions[startPos] = emptyPos;
@@ -307,6 +316,63 @@ class Board {
     return true;
   }
 
+  int findMovesToTargetWithLeastEnergy() {
+    List<DijkstraNode> unVisited = [];
+    List<DijkstraNode> visited = [];
+    // Start state has energy 0
+    bool finished = false;
+    int energy = 0;
+    final startNode = DijkstraNode(getState(),0);
+    startNode.energyUsedToGetHere = 0;
+    unVisited.add(startNode);
+    while ( !finished && unVisited.isNotEmpty) {
+      DijkstraNode thisNode = unVisited.removeAt(0);
+      final neighbourNodes = getPossibleDijkstraNodes(thisNode.state, visited, unVisited);
+      unVisited.addAll(neighbourNodes);
+      for ( final node in neighbourNodes ) {
+        if (thisNode.energyUsedToGetHere + node.cost < node.energyUsedToGetHere) {
+          node.energyUsedToGetHere = thisNode.energyUsedToGetHere + node.cost;
+          node.previousNode = thisNode;
+        }
+      }
+      unVisited.sort( (nodeA, nodeB) => nodeA.energyUsedToGetHere.compareTo(nodeB.energyUsedToGetHere));
+      visited.add(thisNode);
+      energy = thisNode.energyUsedToGetHere;
+      if ( thisNode.state == targetState) {
+        debugPrint('Finished');
+        finished = true;
+      }
+    }
+    return energy;
+  }
+
+  List<DijkstraNode> getPossibleDijkstraNodes(String state, List<DijkstraNode> visitedNodes, List<DijkstraNode> unVisitedNodes) {
+    Board board = Board.fromState(state);
+    List<DijkstraNode> nodes = [];
+    final moves = board.getPossibleMoves();
+    for (final move in moves) {
+      bool alreadyVisited = false;
+      for ( final visited in visitedNodes) {
+        if ( visited.state == move.state) alreadyVisited = true;
+        break;
+      }
+      if ( !alreadyVisited) {
+        for ( final unVisited in unVisitedNodes) {
+          if ( unVisited.state == move.state) alreadyVisited = true;
+          break;
+        }
+
+      }
+      if ( !alreadyVisited ) nodes.add( DijkstraNode(move.state, move.energy) );
+    }
+    return nodes;
+  }
+
+  static Board fromState(String state) {
+    Board board = Board();
+    board.positions = state.split('');
+    return board;
+  }
 
 }
 
@@ -317,6 +383,15 @@ class MoveWithEnergy {
   MoveWithEnergy(this.state, this.energy);
 }
 
+class DijkstraNode {
+  String state;
+  int energyUsedToGetHere = 99999999999999;
+  int cost;
+  DijkstraNode? previousNode;
+
+  DijkstraNode(this.state, this.cost);
+
+}
 abstract class Amphipod {
   int stepEnergy = 0;
   int home = 0;
