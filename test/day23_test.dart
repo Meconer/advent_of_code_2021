@@ -24,7 +24,10 @@ void main() {
     Board board = Board.fromInput(input.split('\n'));
     board.print();
     final moves = board.getPossibleMoves();
-    expect(moves.length, 15);
+    for ( final move in moves) {
+      Board.fromState(move.state).print();
+    }
+    expect(moves.length, 12);
   });
 
   test('Dijkstra', () {
@@ -33,7 +36,7 @@ void main() {
 ###C#A#B#C###
   #D#D#B#A#
   #########''';
-    Board board = Board.fromInput(inputText.split('\n'));
+    Board board = Board.fromInput(exampleInputText.split('\n'));
     board.print();
     var energy = board.findMovesToTargetWithLeastEnergy();
     expect(energy, 12521);

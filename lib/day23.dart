@@ -3,6 +3,8 @@ import 'dart:math';
 import 'package:advent_of_code/day8.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:ordered_set/comparing.dart';
+import 'package:ordered_set/ordered_set.dart';
 
 class Day23 extends StatelessWidget {
   const Day23({Key? key}) : super(key: key);
@@ -317,7 +319,8 @@ class Board {
   }
 
   int findMovesToTargetWithLeastEnergy() {
-    List<DijkstraNode> unVisited = [];
+    Set<DijkstraNode> unVisited = {};
+    //List<DijkstraNode> unVisited = [];
     List<DijkstraNode> visited = [];
     // Start state has energy 0
     bool finished = false;
@@ -325,9 +328,10 @@ class Board {
     final startNode = DijkstraNode(getState(),0);
     startNode.energyUsedToGetHere = 0;
     unVisited.add(startNode);
-    while ( !finished && unVisited.isNotEmpty) {
-      DijkstraNode thisNode = unVisited.removeAt(0);
-      final neighbourNodes = getPossibleDijkstraNodes(thisNode.state, visited, unVisited);
+    while ( unVisited.isNotEmpty) {
+      DijkstraNode thisNode = unVisited.first;
+      unVisited.remove(thisNode);
+      final neighbourNodes = getPossibleDijkstraNodes(thisNode.state, visited);
       unVisited.addAll(neighbourNodes);
       for ( final node in neighbourNodes ) {
         if (thisNode.energyUsedToGetHere + node.cost < node.energyUsedToGetHere) {
@@ -335,33 +339,35 @@ class Board {
           node.previousNode = thisNode;
         }
       }
-      unVisited.sort( (nodeA, nodeB) => nodeA.energyUsedToGetHere.compareTo(nodeB.energyUsedToGetHere));
       visited.add(thisNode);
       energy = thisNode.energyUsedToGetHere;
       if ( thisNode.state == targetState) {
         debugPrint('Finished');
         finished = true;
+        Board.fromState(thisNode.state).print();
+        debugPrint('Energy : ${thisNode.energyUsedToGetHere}');
+        var prevNode = thisNode.previousNode;
+        while (prevNode != null ) {
+          Board.fromState(prevNode.state).print();
+          debugPrint('Energy : ${prevNode.energyUsedToGetHere}');
+          prevNode = prevNode.previousNode;
+        }
       }
     }
     return energy;
   }
 
-  List<DijkstraNode> getPossibleDijkstraNodes(String state, List<DijkstraNode> visitedNodes, List<DijkstraNode> unVisitedNodes) {
+  List<DijkstraNode> getPossibleDijkstraNodes(String state, List<DijkstraNode> visitedNodes) {
     Board board = Board.fromState(state);
     List<DijkstraNode> nodes = [];
     final moves = board.getPossibleMoves();
     for (final move in moves) {
       bool alreadyVisited = false;
       for ( final visited in visitedNodes) {
-        if ( visited.state == move.state) alreadyVisited = true;
-        break;
-      }
-      if ( !alreadyVisited) {
-        for ( final unVisited in unVisitedNodes) {
-          if ( unVisited.state == move.state) alreadyVisited = true;
+        if ( visited.state == move.state) {
+          alreadyVisited = true;
           break;
         }
-
       }
       if ( !alreadyVisited ) nodes.add( DijkstraNode(move.state, move.energy) );
     }
