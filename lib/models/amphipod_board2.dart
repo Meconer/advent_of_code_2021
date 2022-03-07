@@ -221,8 +221,9 @@ class AmphipodBoard2 {
     // Check if pos above is free. If it is not, we cant move
 
     // First check if this is lower home pos. If it is blocked we cannot move and return the empty list.
-    if (!isHighestHome(pos) && positions[getPosAbove(pos)] != emptyPos)
+    if (!isHighestHome(pos) && positions[getPosAbove(pos)] != emptyPos) {
       return moves;
+    }
 
     // Check all possible hallway positions
     for (int hPos in permittedHallwayPositions) {
