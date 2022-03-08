@@ -304,7 +304,7 @@ add z y''';
     List<int> testNumber1 = [1,2,3,4,5,6,7,8,9];
     List<int> testNumber2 = [1,2,3,4,5,6,7,8,9];
     ALU alu = ALU.fromInput(puzzleProgram);
-      ALU.inputList = List.generate(14, (index) => index+1);
+      ALU.inputList = List.generate(14, (index) => (index % 9 ) + 1 );
       alu.reset();
       alu.executeCode();
       alu.print();
