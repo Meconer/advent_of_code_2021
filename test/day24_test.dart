@@ -48,8 +48,7 @@ mod w 2''';
   });
 
 
-  test('Example 4, day24', () {
-    String puzzleProgram = '''inp w
+String puzzleProgram = '''inp w
 mul x 0
 add x z
 mod x 26
@@ -301,6 +300,7 @@ add y w
 add y 15
 mul y x
 add z y''';
+  test('Example 4, day24', () {
     List<int> testNumber1 = [1,2,3,4,5,6,7,8,9];
     List<int> testNumber2 = [1,2,3,4,5,6,7,8,9];
     ALU alu = ALU.fromInput(puzzleProgram);
@@ -308,8 +308,10 @@ add z y''';
       alu.reset();
       alu.executeCode();
       alu.print();
+      // Finished this day in python. See day24.py
 
   });
+
 
 
 }
